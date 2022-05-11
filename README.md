@@ -601,5 +601,8 @@ export RDS_PASSWORD=$(cat ~/environment/sg-per-pod/rds_password)
 psql postgresql://eksworkshop:${RDS_PASSWORD}@${RDS_ENDPOINT}:5432/eksworkshop \
     -f ~/environment/sg-per-pod/pgsql.sql
 ```  
+#### CNI configuration
+  
+  
   
 </details>
