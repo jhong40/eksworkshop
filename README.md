@@ -323,7 +323,22 @@ rm /tmp/kubeconfig*
 # reset aws credentials and config files
 rm  ~/.aws/{config,credentials}
 aws configure set default.region ${AWS_REGION}  
-```  
-  
-  
+```    
 </details>
+
+<details>
+  <summary>IAM roles for Service Account - IRSA</summary>
+  
+```
+kubectl version --short
+aws --version
+aws eks describe-cluster --name eksworkshop-eksctl --query cluster.identity.oidc.issuer --output text
+eksctl version
+eksctl utils associate-iam-oidc-provider --cluster eksworkshop-eksctl --approve
+```
+```
+aws iam list-policies --query 'Policies[?PolicyName==`AmazonS3ReadOnlyAccess`].Arn'
+```  
+ 
+</details>
+
