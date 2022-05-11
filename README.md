@@ -364,6 +364,39 @@ metadata:
 secrets:
 - name: iam-test-token-4cr5r  
 ```  
+### TEST
+  
+```
+mkdir ~/environment/irsa
+
+cat <<EoF> ~/environment/irsa/job-s3.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: eks-iam-test-s3
+spec:
+  template:
+    metadata:
+      labels:
+        app: eks-iam-test-s3
+    spec:
+      serviceAccountName: iam-test
+      containers:
+      - name: eks-iam-test
+        image: amazon/aws-cli:latest
+        args: ["s3", "ls"]
+      restartPolicy: Never
+EoF
+
+kubectl apply -f ~/environment/irsa/job-s3.yaml
+kubectl get job -l app=eks-iam-test-s3
+kubectl logs -l app=eks-iam-test-s3
+
+```  
  
+  
+  
+  
+  
 </details>
 
