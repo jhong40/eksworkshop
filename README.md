@@ -435,7 +435,7 @@ aws s3 rb s3://eksworkshop-$ACCOUNT_ID-$AWS_REGION --region $AWS_REGION --force
 
 
 <details>
-  <summary>Security Group for Pods</summary>
+  <summary>Security Group for Pods - CNI </summary>
   
 ```
 mkdir ${HOME}/environment/sg-per-pod
