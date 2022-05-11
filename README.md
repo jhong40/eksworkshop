@@ -568,6 +568,7 @@ aws rds create-db-instance \
     --backup-retention-period 0 \
     --allocated-storage 20
 ```  
+##### check DB status: look for available
 ```
 aws rds describe-db-instances \
     --db-instance-identifier rds-eksworkshop \
