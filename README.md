@@ -620,5 +620,109 @@ kubectl -n kube-system rollout status ds aws-node
 kubectl get nodes --selector  eks.amazonaws.com/nodegroup=nodegroup-sec-group --show-labels
 # ip-192-168-39-124.awsxxx.compute.internal   Ready    <none>   35m   v1.21.5-eks-9017834  ..... vpc.amazonaws.com/has-trunk-attached=true  
 ```  
+```
+#  A new Custom Resource Definition (CRD) has also been added automatically at the cluster creation  
+kubectl get crd securitygrouppolicies.vpcresources.k8s.aws
+```  
+```
+cat << EoF > ~/environment/sg-per-pod/sg-policy.yaml
+apiVersion: vpcresources.k8s.aws/v1beta1
+kind: SecurityGroupPolicy
+metadata:
+  name: allow-rds-access
+spec:
+  podSelector:
+    matchLabels:
+      app: green-pod
+  securityGroups:
+    groupIds:
+      - ${POD_SG}
+EoF
+```
+```
+kubectl create namespace sg-per-pod
+kubectl -n sg-per-pod apply -f ~/environment/sg-per-pod/sg-policy.yaml
+kubectl -n sg-per-pod describe securitygrouppolicy
+```  
+#### Check the securitgrouppolicy
+```
+kubectl -n sg-per-pod get securitygrouppolicy -o yaml
+  
+apiVersion: v1
+items:
+- apiVersion: vpcresources.k8s.aws/v1beta1
+  kind: SecurityGroupPolicy
+  metadata:
+    name: allow-rds-access
+    namespace: sg-per-pod
+  spec:
+    podSelector:
+      matchLabels:
+        app: green-pod
+    securityGroups:
+      groupIds:
+      - sg-0f82fc84a86128b20
+```
+#### Create secret to Connecto to DB
+```
+export RDS_PASSWORD=$(cat ~/environment/sg-per-pod/rds_password)
+
+export RDS_ENDPOINT=$(aws rds describe-db-instances \
+    --db-instance-identifier rds-eksworkshop \
+    --query 'DBInstances[0].Endpoint.Address' \
+    --output text)
+
+kubectl create secret generic rds\
+    --namespace=sg-per-pod \
+    --from-literal="password=${RDS_PASSWORD}" \
+    --from-literal="host=${RDS_ENDPOINT}"
+
+kubectl -n sg-per-pod describe  secret rds
+```
+#### TEST  
+```
+cd ~/environment/sg-per-pod
+
+curl -s -O https://www.eksworkshop.com/beginner/115_sg-per-pod/deployments.files/green-pod.yaml
+curl -s -O https://www.eksworkshop.com/beginner/115_sg-per-pod/deployments.files/red-pod.yaml
+```
+#### TEST for green pod for SUCESS  
+```
+kubectl -n sg-per-pod apply -f ~/environment/sg-per-pod/green-pod.yaml
+kubectl -n sg-per-pod rollout status deployment green-pod
+
+export GREEN_POD_NAME=$(kubectl -n sg-per-pod get pods -l app=green-pod -o jsonpath='{.items[].metadata.name}')
+kubectl -n sg-per-pod  logs -f ${GREEN_POD_NAME}
+```
+```
+kubectl -n sg-per-pod  describe pod $GREEN_POD_NAME | head -11  
+```
+```
+kubectl -n sg-per-pod  describe pod $GREEN_POD_NAME | head -11
+# An ENI is attached to the pod.
+# And the ENI has the security group POD_SG attached to it.  
+  
+Name:         green-pod-5b69b6f587-cfm9k
+Namespace:    sg-per-pod
+Priority:     0
+Node:         ip-192-168-39-124.us-gov-west-1.compute.internal/192.168.39.124
+Start Time:   Wed, 11 May 2022 19:46:37 +0000
+Labels:       app=green-pod
+              pod-template-hash=5b69b6f587
+Annotations:  kubernetes.io/psp: eks.privileged
+              vpc.amazonaws.com/pod-eni:
+                [{"eniId":"eni-07c60b3834d5ddf15","ifAddress":"02:92:4d:8f:df:18","privateIp":"192.168.33.70","vlanId":1,"subnetCidr":"192.168.32.0/19"}]
+Status:       Running  
+```  
+#### TEST for RED pod for FAILURE
+kubectl -n sg-per-pod apply -f ~/environment/sg-per-pod/red-pod.yaml
+kubectl -n sg-per-pod rollout status deployment red-pod
+export RED_POD_NAME=$(kubectl -n sg-per-pod get pods -l app=red-pod -o jsonpath='{.items[].metadata.name}')
+kubectl -n sg-per-pod  logs -f ${RED_POD_NAME}
+```
+```
+kubectl -n sg-per-pod  describe pod ${RED_POD_NAME} | head -11
+```  
+  
   
 </details>
