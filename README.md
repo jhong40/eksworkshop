@@ -41,7 +41,7 @@ ADMIN_GROUP_POLICY=$(echo -n '{
       "Sid": "AllowAssumeOrganizationAccountRole",
       "Effect": "Allow",
       "Action": "sts:AssumeRole",
-      "Resource": "arn:'; echo -n "$AWS"; echo -n 'aws:iam::'; echo -n "$ACCOUNT_ID"; echo -n ':role/k8sAdmin"
+      "Resource": "arn'; echo -n "$AWS"; echo -n 'iam::'; echo -n "$ACCOUNT_ID"; echo -n ':role/k8sAdmin"
     }
   ]
 }')
