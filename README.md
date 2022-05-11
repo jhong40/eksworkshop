@@ -238,6 +238,43 @@ eksctl get iamidentitymapping --cluster eksworkshop-eksctl
 # it can be used to delete entry
 eksctl delete iamidentitymapping --cluster eksworkshop-eksctlv --arn arn:aws:iam::xxxxxxxxxx:role/k8sDev --username dev-user
 ```  
+
+TEST
+```
+mkdir -p ~/.aws
+
+cat << EoF >> ~/.aws/config
+[profile admin]
+role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sAdmin
+source_profile=eksAdmin
+
+[profile dev]
+role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sDev
+source_profile=eksDev
+
+[profile integ]
+role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sInteg
+source_profile=eksInteg
+
+EoF
+
+cat << EoF >> ~/.aws/credentials
+
+[eksAdmin]
+aws_access_key_id=$(jq -r .AccessKey.AccessKeyId /tmp/PaulAdmin.json)
+aws_secret_access_key=$(jq -r .AccessKey.SecretAccessKey /tmp/PaulAdmin.json)
+
+[eksDev]
+aws_access_key_id=$(jq -r .AccessKey.AccessKeyId /tmp/JeanDev.json)
+aws_secret_access_key=$(jq -r .AccessKey.SecretAccessKey /tmp/JeanDev.json)
+
+[eksInteg]
+aws_access_key_id=$(jq -r .AccessKey.AccessKeyId /tmp/PierreInteg.json)
+aws_secret_access_key=$(jq -r .AccessKey.SecretAccessKey /tmp/PierreInteg.json)
+
+EoF
+  
+```  
   
   
   
