@@ -602,7 +602,12 @@ psql postgresql://eksworkshop:${RDS_PASSWORD}@${RDS_ENDPOINT}:5432/eksworkshop \
     -f ~/environment/sg-per-pod/pgsql.sql
 ```  
 #### CNI configuration
-  
+```
+# ROLE_NAME is the node role name for the new node
+aws iam attach-role-policy \
+    --policy-arn arn:aws:iam::aws:policy/AmazonEKSVPCResourceController \
+    --role-name ${ROLE_NAME}
+```  
   
   
 </details>
