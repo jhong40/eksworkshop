@@ -603,7 +603,7 @@ psql postgresql://eksworkshop:${RDS_PASSWORD}@${RDS_ENDPOINT}:5432/eksworkshop \
 ```  
 #### CNI configuration
 ```
-# ROLE_NAME is the node role name for the new node
+############### ROLE_NAME is the role name for the new node
 # Attach a new IAM policy the Node group role to allow the EC2 instances to manage network interfaces, their private IP addresses, and their attachment and detachment to and from instances.  
 aws iam attach-role-policy \
     --policy-arn arn:aws:iam::aws:policy/AmazonEKSVPCResourceController \
