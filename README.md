@@ -112,6 +112,7 @@ aws iam create-access-key --user-name PaulAdmin | tee /tmp/PaulAdmin.json
 aws iam create-access-key --user-name JeanDev | tee /tmp/JeanDev.json
 aws iam create-access-key --user-name PierreInteg | tee /tmp/PierreInteg.json
 ```  
+  aa
 ```
 kubectl create namespace integration
 kubectl create namespace development
