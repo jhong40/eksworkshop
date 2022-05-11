@@ -71,11 +71,28 @@ echo DEV_GROUP_POLICY=$DEV_GROUP_POLICY
 aws iam put-group-policy \
 --group-name k8sDev \
 --policy-name k8sDev-policy \
---policy-document "$DEV_GROUP_POLICY"
-  
-  
+--policy-document "$DEV_GROUP_POLICY"  
 ```  
-  
+
+```
+aws iam create-group --group-name k8sInteg
+INTEG_GROUP_POLICY=$(echo -n '{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowAssumeOrganizationAccountRole",
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+       "Resource": "arn'; echo -n "$AWS"; echo -n 'iam::'; echo -n "$ACCOUNT_ID"; echo -n ':role/k8sInteg"
+    }
+  ]
+}')
+echo INTEG_GROUP_POLICY=$INTEG_GROUP_POLICY
+
+aws iam put-group-policy \
+--group-name k8sInteg \
+--policy-name k8sInteg-policy \
+--policy-document "$INTEG_GROUP_POLICY"
   
   
   
