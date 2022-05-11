@@ -257,7 +257,8 @@ role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sInteg
 source_profile=eksInteg
 
 EoF
-
+```
+```
 cat << EoF >> ~/.aws/credentials
 
 [eksAdmin]
@@ -272,10 +273,12 @@ aws_secret_access_key=$(jq -r .AccessKey.SecretAccessKey /tmp/JeanDev.json)
 aws_access_key_id=$(jq -r .AccessKey.AccessKeyId /tmp/PierreInteg.json)
 aws_secret_access_key=$(jq -r .AccessKey.SecretAccessKey /tmp/PierreInteg.json)
 
-EoF
-  
+EoF  
 ```  
   
+```
+aws sts get-caller-identity --profile dev
   
+```  
   
 </details>
