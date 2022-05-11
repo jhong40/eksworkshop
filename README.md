@@ -568,5 +568,37 @@ aws rds create-db-instance \
     --backup-retention-period 0 \
     --allocated-storage 20
 ```  
+```
+aws rds describe-db-instances \
+    --db-instance-identifier rds-eksworkshop \
+    --query "DBInstances[].DBInstanceStatus" \
+    --output text
+```
+```
+# get RDS endpoint
+export RDS_ENDPOINT=$(aws rds describe-db-instances \
+    --db-instance-identifier rds-eksworkshop \
+    --query 'DBInstances[0].Endpoint.Address' \
+    --output text)
+
+echo "RDS endpoint: ${RDS_ENDPOINT}"
+```
+```
+sudo amazon-linux-extras install -y postgresql12
+
+cd sg-per-pod
+
+cat << EoF > ~/environment/sg-per-pod/pgsql.sql
+CREATE TABLE welcome (column1 TEXT);
+insert into welcome values ('--------------------------');
+insert into welcome values ('Welcome to the eksworkshop');
+insert into welcome values ('--------------------------');
+EoF
+
+export RDS_PASSWORD=$(cat ~/environment/sg-per-pod/rds_password)
+
+psql postgresql://eksworkshop:${RDS_PASSWORD}@${RDS_ENDPOINT}:5432/eksworkshop \
+    -f ~/environment/sg-per-pod/pgsql.sql
+```  
   
 </details>
