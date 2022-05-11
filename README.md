@@ -338,6 +338,14 @@ eksctl utils associate-iam-oidc-provider --cluster eksworkshop-eksctl --approve
 ```
 ```
 aws iam list-policies --query 'Policies[?PolicyName==`AmazonS3ReadOnlyAccess`].Arn'
+eksctl create iamserviceaccount \
+    --name iam-test \
+    --namespace default \
+    --cluster eksworkshop-eksctl \
+    --attach-policy-arn arn:$AWS:iam::aws:policy/AmazonS3ReadOnlyAccess \
+    --approve \
+    --override-existing-serviceaccounts
+  
 ```  
  
 </details>
