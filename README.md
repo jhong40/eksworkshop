@@ -513,7 +513,7 @@ aws ec2 authorize-security-group-ingress \
 ```
 ```
 # Cloud9 IP
-export C9_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+export C9_IP=$(curl -s https://ipinfo.io/ip)
 
 # allow Cloud9 to connect to RDS
 aws ec2 authorize-security-group-ingress \
