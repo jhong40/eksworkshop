@@ -720,6 +720,7 @@ kubectl -n sg-per-pod apply -f ~/environment/sg-per-pod/red-pod.yaml
 kubectl -n sg-per-pod rollout status deployment red-pod
 export RED_POD_NAME=$(kubectl -n sg-per-pod get pods -l app=red-pod -o jsonpath='{.items[].metadata.name}')
 kubectl -n sg-per-pod  logs -f ${RED_POD_NAME}
+# Database connection failed due to timeout expired  
 ```
 ```
 kubectl -n sg-per-pod  describe pod ${RED_POD_NAME} | head -11
