@@ -618,9 +618,7 @@ kubectl -n kube-system rollout status ds aws-node
 ```  
 ```
 kubectl get nodes --selector  eks.amazonaws.com/nodegroup=nodegroup-sec-group --show-labels
-```  
-```
-ip-192-168-39-124.awsxxx.compute.internal   Ready    <none>   35m   v1.21.5-eks-9017834  ..... vpc.amazonaws.com/has-trunk-attached=true  
+# ip-192-168-39-124.awsxxx.compute.internal   Ready    <none>   35m   v1.21.5-eks-9017834  ..... vpc.amazonaws.com/has-trunk-attached=true  
 ```  
   
 </details>
