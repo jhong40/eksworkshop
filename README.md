@@ -282,6 +282,7 @@ aws sts get-caller-identity --profile dev
 ```  
   
 ### Cleanup
+```  
 unset KUBECONFIG
 
 kubectl delete namespace development integration
