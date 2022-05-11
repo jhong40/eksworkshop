@@ -1,55 +1,34 @@
 # eksworkshop
 
 <details>
-  <summary>zeal</summary>
+  <summary>IAM Groups</summary>
+ ```
+ POLICY=$(echo -n '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws-us-gov:iam::'; echo -n "$ACCOUNT_ID"; echo -n ':root"},"Action":"sts:AssumeRole","Condition":{}}]}')
+
+echo ACCOUNT_ID=$ACCOUNT_ID
+echo POLICY=$POLICY
+
+aws iam create-role \
+  --role-name k8sAdmin \
+  --description "Kubernetes administrator role (for AWS IAM Authenticator for Kubernetes)." \
+  --assume-role-policy-document "$POLICY" \
+  --output text \
+  --query 'Role.Arn'
+
+aws iam create-role \
+  --role-name k8sDev \
+  --description "Kubernetes developer role (for AWS IAM Authenticator for Kubernetes)." \
+  --assume-role-policy-document "$POLICY" \
+  --output text \
+  --query 'Role.Arn'
   
+aws iam create-role \
+  --role-name k8sInteg \
+  --description "Kubernetes role for integration namespace in quick cluster." \
+  --assume-role-policy-document "$POLICY" \
+  --output text \
+  --query 'Role.Arn'
   ```
-  kubernetes -> CRI -> crio -> OCI -> runc
-  (OCI - Open contaniner initiative)
-  
-  Hight level runtime: (pull image from regstry, unpack to continer root fs, generate OCI runtime json, launch OCI runtime: runsc) 
-  docker
-  contaninerd
-  cri-o
-  podman
-  
-  Low level runtime: (OCI)
-  runc   (run container process: need config.json, rootfs)
-  
-  ```
-  ```
-  gVisor
-  dmesg (diagnosit message)
-  
-  ```
-  ```
-  capsh --print   # display the capability. if not installed, apt install libcap2-bin
-  
-  checkov -f pod.yml
-  
-  
-  # /var/log/pods/...   # pod log
-  
-  sysdig proc.name=vi or proc.name=cat
-  sysdig proc.name=cat and container.id!=host
-  sysdig -c spy_users   # chisel
-  sysdig -cl       # list chisel
-  sysdig -h     # help
-  sysdig -l     # list field
-  csysdig
-  
-  output: demo %evt.time %user.uid %proc.name
-  timeout 25s falcon | grep demo
-  
-  cat log.txt | awk '{print $4 $5 $6}'
-  cat log.txt | awk '{print $4 " " $5 " " $6}
-  
-systemctl enable falco
-systemctl start falco
-journalctl -fu falco
-falco  # manual run
-  
-  
-  ```
+ 
   
 </details>
