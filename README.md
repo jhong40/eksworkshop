@@ -239,7 +239,7 @@ eksctl get iamidentitymapping --cluster eksworkshop-eksctl
 eksctl delete iamidentitymapping --cluster eksworkshop-eksctlv --arn arn:aws:iam::xxxxxxxxxx:role/k8sDev --username dev-user
 ```  
 
-TEST
+### TEST
 ```
 mkdir -p ~/.aws
 
