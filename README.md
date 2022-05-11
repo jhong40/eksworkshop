@@ -231,7 +231,14 @@ eksctl create iamidentitymapping \
   --arn arn:aws:iam::${ACCOUNT_ID}:role/k8sAdmin \
   --username admin \
   --group system:masters
+kubectl get cm -n kube-system aws-auth -o yaml
+eksctl get iamidentitymapping --cluster eksworkshop-eksctl 
+```
+```
+# it can be used to delete entry
+eksctl delete iamidentitymapping --cluster eksworkshop-eksctlv --arn arn:aws:iam::xxxxxxxxxx:role/k8sDev --username dev-user
 ```  
+  
   
   
 </details>
