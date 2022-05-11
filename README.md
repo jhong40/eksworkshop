@@ -604,10 +604,20 @@ psql postgresql://eksworkshop:${RDS_PASSWORD}@${RDS_ENDPOINT}:5432/eksworkshop \
 #### CNI configuration
 ```
 # ROLE_NAME is the node role name for the new node
+# Attach a new IAM policy the Node group role to allow the EC2 instances to manage network interfaces, their private IP addresses, and their attachment and detachment to and from instances.  
 aws iam attach-role-policy \
     --policy-arn arn:aws:iam::aws:policy/AmazonEKSVPCResourceController \
     --role-name ${ROLE_NAME}
 ```  
+```
+kubectl -n kube-system set env daemonset aws-node ENABLE_POD_ENI=true
+
+# let's way for the rolling update of the daemonset
+kubectl -n kube-system rollout status ds aws-node
   
+```  
+```
+kubectl get nodes --selector  eks.amazonaws.com/nodegroup=nodegroup-sec-group --show-labels
+```  
   
 </details>
