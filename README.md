@@ -347,6 +347,23 @@ eksctl create iamserviceaccount \
     --override-existing-serviceaccounts
   
 ```  
+```
+kubectl get sa iam-test -o yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::XXXXX:role/eksctl-eksworkshop-eksctl-addon-iamserviceac-Role1-1M93WJN38Q39M
+  creationTimestamp: "2022-05-11T16:27:43Z"
+  labels:
+    app.kubernetes.io/managed-by: eksctl
+  name: iam-test
+  namespace: default
+  resourceVersion: "25270"
+  uid: 54773bf8-4d5b-476f-b667-f586c7b8ad3e
+secrets:
+- name: iam-test-token-4cr5r  
+```  
  
 </details>
 
