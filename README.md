@@ -93,8 +93,6 @@ aws iam put-group-policy \
 --group-name k8sInteg \
 --policy-name k8sInteg-policy \
 --policy-document "$INTEG_GROUP_POLICY"
-  
-  
-  
+```
   
 </details>
