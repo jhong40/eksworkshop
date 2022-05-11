@@ -431,8 +431,31 @@ eksctl delete iamserviceaccount \
 rm -rf ~/environment/irsa/
 aws s3 rb s3://eksworkshop-$ACCOUNT_ID-$AWS_REGION --region $AWS_REGION --force
 ```  
-  
-  
-  
 </details>
 
+
+<details>
+  <summary>Security Group for Pods</summary>
+  
+```
+mkdir ${HOME}/environment/sg-per-pod
+
+cat << EoF > ${HOME}/environment/sg-per-pod/nodegroup-sec-group.yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: eksworkshop-eksctl
+  region: ${AWS_REGION}
+
+managedNodeGroups:
+- name: nodegroup-sec-group
+  desiredCapacity: 1
+  instanceType: m5.large
+EoF
+
+eksctl create nodegroup -f ${HOME}/environment/sg-per-pod/nodegroup-sec-group.yaml
+
+ kubectl get nodes --selector node.kubernetes.io/instance-type=m5.large
+```
+  
+</details>
