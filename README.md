@@ -903,6 +903,7 @@ KUBERNETES_SERVICE_PORT_HTTPS=443
 KUBERNETES_SERVICE_PORT=443  
 ```  
 ### DNS
+```  
 kubectl get service -n kube-system -l k8s-app=kube-dns
 kubectl -n my-nginx run curl --image=radial/busyboxplus:curl -i --tty
 If you don't see a command prompt, try pressing enter.
