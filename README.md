@@ -867,7 +867,6 @@ kubectl get pods --all-namespaces
 kubectl get svc -o wide -n management-ui
 # loadbalancer URL show all pods can communicate with each other  
 ```  
-</details>
 #### APPLY NETWORK POLICIES
 ```
 cd ~/environment/calico_resources
