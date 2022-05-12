@@ -435,7 +435,7 @@ aws s3 rb s3://eksworkshop-$ACCOUNT_ID-$AWS_REGION --region $AWS_REGION --force
 
 
 <details>
-  <summary>Security Group for Pods - CNI </summary>
+  <summary>Security Group for Pods - CNI Plugin</summary>
   
 ```
 mkdir ${HOME}/environment/sg-per-pod
@@ -827,6 +827,155 @@ cd ~/environment
 rm -rf sg-per-pod
 ```    
 </details>
+  
+<details>
+  <summary>Network Policy</summary>
+#### Apply Calico Demonset
+```
+kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-1.6/config/v1.6/calico.yaml
+kubectl get daemonset calico-node --namespace=kube-system  
+```  
+#### Create Resource
+A namespace called **stars**
+**frontend** and **backend** deployments and services within **stars** namespace
+A namespace called **management-ui**
+Deployment and service **management-ui** for the user interface seen on the browser, in the **management-ui** namespace
+A namespace called **client**
+**client** deployment and service in **client** namespace  
+```
+mkdir ~/environment/calico_resources
+cd ~/environment/calico_resources
+cd ~/environment/calico_resources
+wget https://eksworkshop.com/beginner/120_network-policies/calico/stars_policy_demo/create_resources.files/namespace.yaml
+kubectl apply -f namespace.yaml   #create stars 
+```  
+```
+cd ~/environment/calico_resources
+wget https://eksworkshop.com/beginner/120_network-policies/calico/stars_policy_demo/create_resources.files/management-ui.yaml
+wget https://eksworkshop.com/beginner/120_network-policies/calico/stars_policy_demo/create_resources.files/backend.yaml
+wget https://eksworkshop.com/beginner/120_network-policies/calico/stars_policy_demo/create_resources.files/frontend.yaml
+wget https://eksworkshop.com/beginner/120_network-policies/calico/stars_policy_demo/create_resources.files/client.yaml
+kubectl apply -f management-ui.yaml
+kubectl apply -f backend.yaml
+kubectl apply -f frontend.yaml
+kubectl apply -f client.yaml
+kubectl get pods --all-namespaces
+```  
+#### DEFAULT POD-TO-POD COMMUNICATION
+```
+kubectl get svc -o wide -n management-ui
+# loadbalancer URL show all pods can communicate with each other  
+```  
+</details>
+#### APPLY NETWORK POLICIES
+```
+cd ~/environment/calico_resources
+wget https://eksworkshop.com/beginner/120_network-policies/calico/stars_policy_demo/apply_network_policies.files/default-deny.yaml
+```  
+```
+cat default-deny.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: default-deny
+spec:
+  podSelector:
+    matchLabels: {}
+```
+```
+kubectl apply -n stars -f default-deny.yaml
+kubectl apply -n client -f default-deny.yaml
+## after appply, mgmt UI show nothing  
+```  
+```
+cd ~/environment/calico_resources
+wget https://eksworkshop.com/beginner/120_network-policies/calico/stars_policy_demo/apply_network_policies.files/allow-ui.yaml
+wget https://eksworkshop.com/beginner/120_network-policies/calico/stars_policy_demo/apply_network_policies.files/allow-ui-client.yaml
+```
+```
+cat allow-ui.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: stars
+  name: allow-ui
+spec:
+  podSelector:
+    matchLabels: {}
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              role: management-ui
+
+cat allow-ui-client.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: client
+  name: allow-ui
+spec:
+  podSelector:
+    matchLabels: {}
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              role: management-ui
+```
+```
+kubectl apply -f allow-ui.yaml
+kubectl apply -f allow-ui-client.yaml
+# After, you can see the 3 nodes in UI  (no traffic btw them)  
+```
+#### ALLOW DIRECTIONAL TRAFFIC
+```
+cd ~/environment/calico_resources
+```
+```
+cat <<EOF | kubectl apply -f -
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: stars
+  name: backend-policy
+spec:
+  podSelector:
+    matchLabels:
+      role: backend
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: frontend
+      ports:
+        - protocol: TCP
+          port: 6379
+EOF
+```
+```
+cat <<EOF | kubectl apply -f -
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: stars
+  name: frontend-policy
+spec:
+  podSelector:
+    matchLabels:
+      role: frontend
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              role: client
+      ports:
+        - protocol: TCP
+          port: 80
+EOF
+```  
+UI will show traffic   
+  
   
 <details>
   <summary>Expose Service: Classic LB, Network LB, APP LB</summary>
