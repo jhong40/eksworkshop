@@ -837,12 +837,12 @@ kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/releas
 kubectl get daemonset calico-node --namespace=kube-system  
 ```  
 #### Create Resource
-A namespace called **stars**
-**frontend** and **backend** deployments and services within **stars** namespace
-A namespace called **management-ui**
-Deployment and service **management-ui** for the user interface seen on the browser, in the **management-ui** namespace
-A namespace called **client**
-**client** deployment and service in **client** namespace  
++ A namespace called **stars**
++ **frontend** and **backend** deployments and services within **stars** namespace
++ A namespace called **management-ui**
++ Deployment and service **management-ui** for the user interface seen on the browser, in the **management-ui** namespace
++ A namespace called **client**
++ **client** deployment and service in **client** namespace  
 ```
 mkdir ~/environment/calico_resources
 cd ~/environment/calico_resources
