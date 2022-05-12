@@ -1,7 +1,7 @@
 # Beginner
 
-https://github.com/jhong40/eksworkshop/blob/main/Beginner.md
-
++ https://github.com/jhong40/eksworkshop/blob/main/Beginner.md
++ https://github.com/jhong40/eksworkshop/blob/main/Intermediate.md
 <details>
   <summary>IAM Groups</summary>
   
