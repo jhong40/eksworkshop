@@ -978,8 +978,11 @@ helm upgrade -i aws-load-balancer-controller \
     --set serviceAccount.create=false \
     --set serviceAccount.name=aws-load-balancer-controller \
     --set image.tag="${LBC_VERSION}" \
-    --version="${LBC_CHART_VERSION}"
+    --version="${LBC_CHART_VERSION}"  \
+    --set image.repository=013241004608.dkr.ecr.us-gov-west-1.amazonaws.com/amazon/aws-load-balancer-controller
 
+# add image.repository to pull image depending on the region
+  
 kubectl -n kube-system rollout status deployment aws-load-balancer-controller
  
 ```  
