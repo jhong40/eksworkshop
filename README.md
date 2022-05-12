@@ -829,7 +829,7 @@ rm -rf sg-per-pod
 </details>
   
 <details>
-  <summary>Expose Service</summary>
+  <summary>Expose Service: Classic LB, Network LB, APP LB</summary>
   
 ```
 cat <<EoF > ~/environment/run-my-nginx.yaml
@@ -862,6 +862,121 @@ kubectl create ns my-nginx
 kubectl -n my-nginx apply -f ~/environment/run-my-nginx.yaml
 kubectl -n my-nginx get pods -o wide
 kubectl -n my-nginx get pods -o yaml | grep 'podIP:'
-  
+``` 
+```
+kubectl -n my-nginx expose deployment/my-nginx
+kubectl -n my-nginx get svc my-nginx
 ```  
+```
+# Create a variable set with the my-nginx service IP
+export MyClusterIP=$(kubectl -n my-nginx get svc my-nginx -ojsonpath='{.spec.clusterIP}')
+```
+```  
+# Create a new deployment and allocate a TTY for the container in the pod
+kubectl -n my-nginx run -i --tty load-generator --env="MyClusterIP=${MyClusterIP}" --image=busybox /bin/sh
+wget -q -O - ${MyClusterIP} | grep '<title>'   
+exit
+```  
+#### Kubernetes supports 2 primary modes of finding a Service: Environment variables  and DNS
+### Environment Var
+```
+kubectl -n my-nginx get pods -l run=my-nginx -o wide
+export mypod=$(kubectl -n my-nginx get pods -l run=my-nginx -o jsonpath='{.items[0].metadata.name}')
+kubectl -n my-nginx exec ${mypod} -- printenv | grep SERVICE
+
+KUBERNETES_SERVICE_HOST=10.100.0.1
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_SERVICE_PORT_HTTPS=443
+# Note there’s no mention of your Service. This is because you created the replicas before the Service.  
+```  
+```
+kubectl -n my-nginx rollout restart deployment my-nginx
+kubectl -n my-nginx get pods -l run=my-nginx -o wide
+export mypod=$(kubectl -n my-nginx get pods -l run=my-nginx -o jsonpath='{.items[0].metadata.name}')
+
+kubectl -n my-nginx exec ${mypod} -- printenv | grep SERVICE
+  
+MY_NGINX_SERVICE_HOST=10.100.33.130
+MY_NGINX_SERVICE_PORT=80
+KUBERNETES_SERVICE_HOST=10.100.0.1
+KUBERNETES_SERVICE_PORT_HTTPS=443
+KUBERNETES_SERVICE_PORT=443  
+```  
+### DNS
+kubectl get service -n kube-system -l k8s-app=kube-dns
+kubectl -n my-nginx run curl --image=radial/busyboxplus:curl -i --tty
+If you don't see a command prompt, try pressing enter.
+[ root@curl:/ ]$ nslookup my-nginx
+Server:    10.100.0.10
+Address 1: 10.100.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      my-nginx
+Address 1: 10.100.33.130 my-nginx.my-nginx.svc.cluster.local
+```  
+### Expose Service
+```
+kubectl -n my-nginx get svc my-nginx
+kubectl -n my-nginx patch svc my-nginx -p '{"spec": {"type": "LoadBalancer"}}'
+kubectl -n my-nginx get svc my-nginx
+export loadbalancer=$(kubectl -n my-nginx get svc my-nginx -o jsonpath='{.status.loadBalancer.ingress[*].hostname}')
+curl -k -s http://${loadbalancer} | grep title 
+
+kubectl -n my-nginx describe service my-nginx | grep Ingress
+```
+### AWS Load Balancer Controller
+#### Prerequisite  
+```
+echo 'export LBC_VERSION="v2.4.1"' >>  ~/.bash_profile
+echo 'export LBC_CHART_VERSION="1.4.1"' >>  ~/.bash_profile
+.  ~/.bash_profile
+  
+if [ ! -x ${LBC_VERSION} ]
+  then
+    tput setaf 2; echo '${LBC_VERSION} has been set.'
+  else
+    tput setaf 1;echo '${LBC_VERSION} has NOT been set.'
+fi
+helm version --short
+eksctl utils associate-iam-oidc-provider \
+    --region ${AWS_REGION} \
+    --cluster eksworkshop-eksctl \
+    --approve
+```  
+#### IRSA
+```
+# AWSLoadBalancerControllerIAMPolicy  
+curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/${LBC_VERSION}/docs/install/iam_policy.json
+sed -i "s/:aws:/:$AWS:/" iam_policy.json    ####################  
+aws iam create-policy \
+    --policy-name AWSLoadBalancerControllerIAMPolicy \
+    --policy-document file://iam_policy.json
+# Create a IAM role and ServiceAccoun
+eksctl create iamserviceaccount \
+  --cluster eksworkshop-eksctl \
+  --namespace kube-system \
+  --name aws-load-balancer-controller \
+  --attach-policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/AWSLoadBalancerControllerIAMPolicy \
+  --override-existing-serviceaccounts \
+  --approve
+# Install the TargetGroupBinding CRDs
+kubectl apply -k github.com/aws/eks-charts/stable/aws-load-balancer-controller/crds?ref=master
+kubectl get crd
+
+# Deploy Helm chart
+helm repo add eks https://aws.github.io/eks-charts
+
+helm upgrade -i aws-load-balancer-controller \
+    eks/aws-load-balancer-controller \
+    -n kube-system \
+    --set clusterName=eksworkshop-eksctl \
+    --set serviceAccount.create=false \
+    --set serviceAccount.name=aws-load-balancer-controller \
+    --set image.tag="${LBC_VERSION}" \
+    --version="${LBC_CHART_VERSION}"
+
+kubectl -n kube-system rollout status deployment aws-load-balancer-controller
+ 
+```  
+  
+  
   </details>  
