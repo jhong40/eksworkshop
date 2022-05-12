@@ -1202,7 +1202,13 @@ eksctl delete iamserviceaccount \
 aws iam delete-policy \
     --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/AWSLoadBalancerControllerIAMPolicy
 ```  
+</details>  
+
+<details>
+  <summary>Stateful Set: EBS volume</summary>
   
+  Container Storage Interface (CSI) - Amazon EBS CSI Driver
   
   
   </details>  
+ ```  
