@@ -1,5 +1,7 @@
 # Beginner
 
+https://github.com/jhong40/eksworkshop/blob/main/Beginner.md
+
 <details>
   <summary>IAM Groups</summary>
   
