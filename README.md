@@ -1357,10 +1357,97 @@ kubectl apply -f ${HOME}/environment/ebs_statefulset/mysql-statefulset.yaml
 kubectl -n mysql rollout status statefulset mysql
 # kubectl -n mysql get pods -l app=mysql --watch
 kubectl -n mysql get pvc -l app=mysql
+```  
+#### Test MySql
+```
+kubectl -n mysql run mysql-client --image=mysql:5.7 -i --rm --restart=Never --\
+  mysql -h mysql-0.mysql <<EOF
+CREATE DATABASE test;
+CREATE TABLE test.messages (message VARCHAR(250));
+INSERT INTO test.messages VALUES ('hello, from mysql-client');
+EOF
+```
+```
+kubectl -n mysql run mysql-client --image=mysql:5.7 -it --rm --restart=Never --\
+  mysql -h mysql-read -e "SELECT * FROM test.messages"
+```
+```
+kubectl -n mysql run mysql-client-loop --image=mysql:5.7 -i -t --rm --restart=Never --\
+   bash -ic "while sleep 1; do mysql -h mysql-read -e 'SELECT @@server_id,NOW()'; done"
+```  
+#### Test Failure
+```
+kubectl -n mysql exec mysql-1 -c mysql -- mv /usr/bin/mysql /usr/bin/mysql.off
+kubectl -n mysql get pod mysql-1
+# NAME      READY   STATUS    RESTARTS   AGE
+# mysql-1   1/2     Running   0          8m42s  
   
+```  
+```
+kubectl -n mysql run mysql-client-loop --image=mysql:5.7 -i -t --rm --restart=Never --\
+   bash -ic "while sleep 1; do mysql -h mysql-read -e 'SELECT @@server_id,NOW()'; done"
+```  
+###### Revert back
+```
+kubectl -n mysql exec mysql-1 -c mysql -- mv /usr/bin/mysql.off /usr/bin/mysql
+kubectl -n mysql get pod mysql-1
+#NAME      READY   STATUS    RESTARTS   AGE
+#mysql-1   2/2     Running   0          11m  
+```
+###### Failed Pod
+```
+kubectl -n mysql delete pod mysql-1
+kubectl -n mysql get pod mysql-1 -w
+```
+###### Test Sacaling
+```
+kubectl -n mysql scale statefulset mysql --replicas=3
+kubectl -n mysql rollout status statefulset mysql
+# another terminal check 
+kubectl -n mysql run mysql-client-loop --image=mysql:5.7 -i -t --rm --restart=Never --\
+   bash -ic "while sleep 1; do mysql -h mysql-read -e 'SELECT @@server_id,NOW()'; done"
   
+kubectl -n mysql run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never --\
+ mysql -h mysql-2.mysql -e "SELECT * FROM test.messages"
+
+kubectl -n mysql  scale statefulset mysql --replicas=2
+kubectl -n mysql get pods -l app=mysql
+
+kubectl -n mysql  get pvc -l app=mysql  # still see 3 pv  (doesn't delete pv)
+kubectl -n mysql delete pvc data-mysql-2
   
-  
-  
+```  
+#### Clean UP
+```
+export EBS_CSI_POLICY_NAME="Amazon_EBS_CSI_Driver"
+export EBS_CSI_POLICY_ARN=$(aws --region ${AWS_REGION} iam list-policies --query 'Policies[?PolicyName==`'${EBS_CSI_POLICY_NAME}'`].Arn' --output text)
+
+kubectl delete \
+  -f ${HOME}/environment/ebs_statefulset/mysql-statefulset.yaml \
+  -f ${HOME}/environment/ebs_statefulset/mysql-services.yaml \
+  -f ${HOME}/environment/ebs_statefulset/mysql-configmap.yaml \
+  -f ${HOME}/environment/ebs_statefulset/mysql-storageclass.yaml
+
+# Delete the mysql namespace 
+kubectl delete namespace mysql
+
+# Uninstall the aws-ebs-csi-driver
+helm -n kube-system uninstall aws-ebs-csi-driver
+
+# Delete the service account
+eksctl delete iamserviceaccount \
+  --cluster eksworkshop-eksctl \
+  --namespace kube-system \
+  --name ebs-csi-controller-irsa \
+  --wait
+
+# Delete the IAM Amazon_EBS_CSI_Driver policy
+aws iam delete-policy \
+  --region ${AWS_REGION} \
+  --policy-arn ${EBS_CSI_POLICY_ARN}
+
+cd ${HOME}/environment
+rm -rf ${HOME}/environment/ebs_statefulset
+```    
 </details>  
  
