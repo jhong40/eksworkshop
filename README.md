@@ -959,11 +959,16 @@ eksctl create iamserviceaccount \
   --attach-policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/AWSLoadBalancerControllerIAMPolicy \
   --override-existing-serviceaccounts \
   --approve
-# Install the TargetGroupBinding CRDs
+```
+  
+#### Install the TargetGroupBinding CRDs
+```
 kubectl apply -k github.com/aws/eks-charts/stable/aws-load-balancer-controller/crds?ref=master
 kubectl get crd
-
-# Deploy Helm chart
+```
+  
+#### Deploy Helm chart
+```
 helm repo add eks https://aws.github.io/eks-charts
 
 helm upgrade -i aws-load-balancer-controller \
