@@ -1208,6 +1208,24 @@ aws iam delete-policy \
   <summary>Stateful Set: EBS volume</summary>
   
   Container Storage Interface (CSI) - Amazon EBS CSI Driver
-  
+  ```
+ export EBS_CSI_POLICY_NAME="Amazon_EBS_CSI_Driver"
+
+mkdir ${HOME}/environment/ebs_statefulset
+cd ${HOME}/environment/ebs_statefulset
+
+# download the IAM policy document
+curl -sSL -o ebs-csi-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-ebs-csi-driver/master/docs/example-iam-policy.json
+sed -i "s/:aws:/:$AWS:/" ebs-csi-policy.json    #################### 
+# Create the IAM policy
+aws iam create-policy \
+  --region ${AWS_REGION} \
+  --policy-name ${EBS_CSI_POLICY_NAME} \
+  --policy-document file://${HOME}/environment/ebs_statefulset/ebs-csi-policy.json
+
+# export the policy ARN as a variable
+export EBS_CSI_POLICY_ARN=$(aws --region ${AWS_REGION} iam list-policies --query 'Policies[?PolicyName==`'$EBS_CSI_POLICY_NAME'`].Arn' --output text)
+ 
+  ```
 </details>  
  
