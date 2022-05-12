@@ -1242,6 +1242,7 @@ eksctl create iamserviceaccount \
   --override-existing-serviceaccounts \
   --approve
 ```
+#### Deploy the Amazon EBS CSI Driver  
 ```
 # add the aws-ebs-csi-driver as a helm repo
 helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
@@ -1263,5 +1264,103 @@ helm upgrade --install aws-ebs-csi-driver \
 
 kubectl -n kube-system rollout status deployment ebs-csi-controller 
 ```  
+#### Define Storage Class
+```
+cat << EoF > ${HOME}/environment/ebs_statefulset/mysql-storageclass.yaml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: mysql-gp2
+provisioner: ebs.csi.aws.com # Amazon EBS CSI driver
+parameters:
+  type: gp2
+  encrypted: 'true' # EBS volumes will always be encrypted by default
+volumeBindingMode: WaitForFirstConsumer # EBS volumes are AZ specific
+reclaimPolicy: Delete
+mountOptions:
+- debug
+EoF
+```
+```
+kubectl create -f ${HOME}/environment/ebs_statefulset/mysql-storageclass.yaml  
+kubectl describe storageclass mysql-gp2
+```  
+#### Create ConfigMap
+```
+kubectl create namespace mysql
+cd ${HOME}/environment/ebs_statefulset
+
+cat << EoF > ${HOME}/environment/ebs_statefulset/mysql-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: mysql
+  labels:
+    app: mysql
+data:
+  master.cnf: |
+    # Apply this config only on the leader.
+    [mysqld]
+    log-bin
+  slave.cnf: |
+    # Apply this config only on followers.
+    [mysqld]
+    super-read-only
+EoF
+
+kubectl create -f ${HOME}/environment/ebs_statefulset/mysql-configmap.yaml
+```  
+#### Create Services
+```
+cat << EoF > ${HOME}/environment/ebs_statefulset/mysql-services.yaml
+# Headless service for stable DNS entries of StatefulSet members.
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: mysql
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  ports:
+  - name: mysql
+    port: 3306
+  clusterIP: None
+  selector:
+    app: mysql
+---
+# Client service for connecting to any MySQL instance for reads.
+# For writes, you must instead connect to the leader: mysql-0.mysql.
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: mysql
+  name: mysql-read
+  labels:
+    app: mysql
+spec:
+  ports:
+  - name: mysql
+    port: 3306
+  selector:
+    app: mysql
+EoF
+
+kubectl create -f ${HOME}/environment/ebs_statefulset/mysql-services.yaml
+```
+#### Create StatefulSet
+```
+cd ${HOME}/environment/ebs_statefulset
+wget https://eksworkshop.com/beginner/170_statefulset/statefulset.files/mysql-statefulset.yaml
+kubectl apply -f ${HOME}/environment/ebs_statefulset/mysql-statefulset.yaml
+kubectl -n mysql rollout status statefulset mysql
+# kubectl -n mysql get pods -l app=mysql --watch
+kubectl -n mysql get pvc -l app=mysql
+  
+  
+  
+  
+  
 </details>  
  
