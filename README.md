@@ -830,6 +830,7 @@ rm -rf sg-per-pod
   
 <details>
   <summary>Network Policy</summary>
+  
 #### Apply Calico Demonset
 ```
 kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-1.6/config/v1.6/calico.yaml
@@ -975,7 +976,7 @@ spec:
 EOF
 ```  
 UI will show traffic   
-  
+</details>  
   
 <details>
   <summary>Expose Service: Classic LB, Network LB, APP LB</summary>
