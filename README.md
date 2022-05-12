@@ -1209,6 +1209,5 @@ aws iam delete-policy \
   
   Container Storage Interface (CSI) - Amazon EBS CSI Driver
   
-  
-  </details>  
- ```  
+</details>  
+ 
