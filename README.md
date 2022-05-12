@@ -975,6 +975,11 @@ spec:
 EOF
 ```  
 UI will show traffic   
+#### Clean up
+```
+kubectl delete namespace client stars management-ui
+```  
+  
 </details>  
   
 <details>
