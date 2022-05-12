@@ -1,4 +1,4 @@
-# eksworkshop
+# Beginner
 
 <details>
   <summary>IAM Groups</summary>
