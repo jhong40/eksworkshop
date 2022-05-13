@@ -1514,6 +1514,7 @@ EOF
 kubectl apply -f nginx-deployment-spc.yaml
 kubectl get SecretProviderClass 
 ```  
+#### DEPLOY PODS WITH MOUNTED SECRETS	
 ```
 cat << EOF > nginx-deployment.yaml
 ---
@@ -1560,5 +1561,109 @@ export POD_NAME=$(kubectl get pods -l app=nginx -o jsonpath='{.items[].metadata.
 kubectl exec -it ${POD_NAME} -- cat /mnt/secrets/DBSecret_eksworkshop; echo
 # {"username":"foo","password":"bbbbb"}  
 ```
-  
+#### SYNC WITH NATIVE KUBERNETES SECRETS
+```
+cat << EOF > nginx-deployment-spc-k8s-secrets.yaml
+apiVersion: secrets-store.csi.x-k8s.io/v1alpha1
+kind: SecretProviderClass
+metadata:
+  name: nginx-deployment-spc-k8s-secrets
+spec:
+  provider: aws
+  parameters: 
+    objects: |
+      - objectName: "DBSecret_eksworkshop"
+        objectType: "secretsmanager"
+        jmesPath:
+          - path: username
+            objectAlias: dbusername
+          - path: password
+            objectAlias: dbpassword
+  # Create k8s secret. It requires volume mount first in the pod and then sync.
+  secretObjects:                
+    - secretName: my-secret-01
+      type: Opaque
+      data:
+        #- objectName: <objectName> or <objectAlias> 
+        - objectName: dbusername
+          key: db_username_01
+        - objectName: dbpassword
+          key: db_password_01
+EOF
+
+kubectl apply -f nginx-deployment-spc-k8s-secrets.yaml
+kubectl get SecretProviderClass nginx-deployment-spc-k8s-secrets
+```
+```
+cat << EOF > nginx-deployment-k8s-secrets.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment-k8s-secrets
+  labels:
+    app: nginx-k8s-secrets
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-k8s-secrets
+  template:
+    metadata:
+      labels:
+        app: nginx-k8s-secrets
+    spec:
+      serviceAccountName: nginx-deployment-sa
+      containers:
+      - name: nginx-deployment-k8s-secrets
+        image: nginx
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 80
+        volumeMounts:
+          - name: secrets-store-inline
+            mountPath: "/mnt/secrets"
+            readOnly: true
+        env:
+          - name: DB_USERNAME_01
+            valueFrom:
+              secretKeyRef:
+                name: my-secret-01
+                key: db_username_01
+          - name: DB_PASSWORD_01
+            valueFrom:
+              secretKeyRef:
+                name: my-secret-01
+                key: db_password_01
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: nginx-deployment-spc-k8s-secrets
+EOF
+
+kubectl apply -f nginx-deployment-k8s-secrets.yaml
+sleep 2
+kubectl get pods -l "app=nginx-k8s-secrets"
+```
+```
+export POD_NAME=$(kubectl get pods -l app=nginx-k8s-secrets -o jsonpath='{.items[].metadata.name}')
+kubectl exec -it ${POD_NAME} -- /bin/bash
+```	
+```
+export PS1='# '
+cd /mnt/secrets
+ls -l   #--- List mounted secrets
+
+cat dbusername; echo  
+cat dbpassword; echo
+cat DBSecret_eksworkshop; echo
+
+env | grep DB    #-- Display two ENV variables set from the secret values
+sleep 2
+exit
+```
+	
   </details>  
