@@ -1764,7 +1764,15 @@ kubectl apply -f master.yaml
 kubectl get secret -n kube-system -l sealedsecrets.bitnami.com/sealed-secrets-key
 kubectl apply -f controller.yaml  
 kubectl get pods -n kube-system | grep sealed-secrets-controller
-	
+```	
+#### Clean up
+```
+cd ~/environment/secrets
+kubectl delete Secret --all -n octank
+kubectl delete SealedSecret --all -n octank
+kubectl delete pod --all -n octank
+kubectl delete -f controller.yaml
+kubectl delete namespace octank
 ```	
 	
 	
