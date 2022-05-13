@@ -1706,6 +1706,52 @@ kubectl delete -f \
 
 helm uninstall -n kube-system csi-secrets-store
 helm repo remove secrets-store-csi-driver
+```	
+	
+<details>
+  <summary>SECURING SECRETS USING SEALEDSECRETS</summary>
 ```
+mkdir -p  ~/environment/secrets
+cd ~/environment/secrets
+```	
+#### Installing the kubeseal Client
+```
+wget https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.16.0/kubeseal-linux-amd64 -O kubeseal
+sudo install -m 755 kubeseal /usr/local/bin/kubeseal
+```
+#### installing the Custom Controller and CRD for SealedSecret
+```
+wget https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.16.0/controller.yaml
+kubectl apply -f controller.yaml
+kubectl get pods -n kube-system | grep sealed-secrets-controller
+
+kubectl logs sealed-secrets-controller-84fcdcd5fd-9qb5j -n kube-system	
+```	
+#### Get Pub/Private key
+```	
+kubectl get secret -n kube-system -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml
+```
+####  Sealing your secret
+```
+kubectl create ns octank
+kubectl get secret -n octank  # show one default secrete
+cd ~/environment/secrets
+mkdir -p ~/environment/secrets
+cd ~/environment/secrets
+wget https://eksworkshop.com/beginner/200_secrets/secrets.files/kustomization.yaml
+kubectl kustomize . > secret.yaml
+	
+kubeseal --format=yaml < secret.yaml > sealed-secret.yaml
+cat secret.yaml 
+cat sealed-secret.yaml 
+kubectl apply -f sealed-secret.yaml 
+
+# kubectl logs -n kube-system sealed-secrets-controller-7bdbc75d47-5wxvf
+kubectl get secret -n octank database-credentials
+```	
+
+	
+	
+</details>	
 	
   </details>  
