@@ -1711,6 +1711,7 @@ helm repo remove secrets-store-csi-driver
 	
 <details>
   <summary>SECURING SECRETS USING SEALEDSECRETS</summary>
+	
 ```
 mkdir -p  ~/environment/secrets
 cd ~/environment/secrets
