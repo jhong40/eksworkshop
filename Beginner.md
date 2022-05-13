@@ -1451,3 +1451,114 @@ rm -rf ${HOME}/environment/ebs_statefulset
 ```    
 </details>  
  
+<details>
+  <summary>MOUNTING SECRETS FROM AWS SECRETS MANAGER</summary>
+   
+  ### Secrets Store CSI Driver + ASCP (AWS Secret and Configuraiton Provider)
+```
+helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+helm install -n kube-system csi-secrets-store   --set syncSecret.enabled=true   --set enableSecretRotation=true   secrets-store-csi-driver/secrets-store-csi-driver
+kubectl apply -f https://raw.githubusercontent.com/aws/secrets-store-csi-driver-provider-aws/main/deployment/aws-provider-installer.yaml
+kubectl get daemonsets -n kube-system -l app=csi-secrets-store-provider-aws
+kubectl get daemonsets -n kube-system -l app.kubernetes.io/instance=csi-secrets-store
+```
+```
+test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is not set
+export EKS_CLUSTERNAME="eksworkshop-eksctl"
+aws --region "$AWS_REGION" secretsmanager   create-secret --name DBSecret_eksworkshop   --secret-string '{"username":"foo", "password":"super-sekret"}'
+SECRET_ARN=$(aws --region "$AWS_REGION" secretsmanager \
+    describe-secret --secret-id  DBSecret_eksworkshop \
+    --query 'ARN' | sed -e 's/"//g' )
+```  
+```
+IAM_POLICY_NAME_SECRET="DBSecret_eksworkshop_secrets_policy_$RANDOM"
+IAM_POLICY_ARN_SECRET=$(aws --region "$AWS_REGION" iam \
+	create-policy --query Policy.Arn \
+    --output text --policy-name $IAM_POLICY_NAME_SECRET \
+    --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [ {
+        "Effect": "Allow",
+        "Action": ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
+        "Resource": ["'"$SECRET_ARN"'" ]
+    } ]
+}')
+
+echo $IAM_POLICY_ARN_SECRET | tee -a 00_iam_policy_arn_dbsecret
+  
+eksctl utils associate-iam-oidc-provider \
+    --region="$AWS_REGION" --cluster="$EKS_CLUSTERNAME" \
+    --approve
+
+eksctl create iamserviceaccount \
+    --region="$AWS_REGION" --name "nginx-deployment-sa"  \
+    --cluster "$EKS_CLUSTERNAME" \
+    --attach-policy-arn "$IAM_POLICY_ARN_SECRET" --approve \
+    --override-existing-serviceaccounts
+```  
+```
+cat << EOF > nginx-deployment-spc.yaml
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1alpha1
+kind: SecretProviderClass
+metadata:
+  name: nginx-deployment-spc
+spec:
+  provider: aws
+  parameters:
+    objects: |
+        - objectName: "DBSecret_eksworkshop"
+          objectType: "secretsmanager"
+EOF
+
+kubectl apply -f nginx-deployment-spc.yaml
+kubectl get SecretProviderClass 
+```  
+```
+cat << EOF > nginx-deployment.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      serviceAccountName: nginx-deployment-sa
+      containers:
+      - name: nginx-deployment
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: secrets-store-inline
+          mountPath: "/mnt/secrets"
+          readOnly: true```
+      volumes:
+      - name: secrets-store-inline
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: nginx-deployment-spc
+EOF
+
+kubectl apply -f nginx-deployment.yaml
+sleep 5
+kubectl get pods -l "app=nginx"
+
+export POD_NAME=$(kubectl get pods -l app=nginx -o jsonpath='{.items[].metadata.name}')
+kubectl exec -it ${POD_NAME} -- cat /mnt/secrets/DBSecret_eksworkshop; echo
+# {"username":"foo","password":"bbbbb"}  
+```
+  
+  </details>  
