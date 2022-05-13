@@ -1707,6 +1707,7 @@ kubectl delete -f \
 helm uninstall -n kube-system csi-secrets-store
 helm repo remove secrets-store-csi-driver
 ```	
+</details>
 	
 <details>
   <summary>SECURING SECRETS USING SEALEDSECRETS</summary>
@@ -1754,4 +1755,4 @@ kubectl get secret -n octank database-credentials
 	
 </details>	
 	
-  </details>  
+
