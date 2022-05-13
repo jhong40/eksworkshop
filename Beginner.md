@@ -1750,8 +1750,22 @@ kubectl apply -f sealed-secret.yaml
 
 # kubectl logs -n kube-system sealed-secrets-controller-7bdbc75d47-5wxvf
 kubectl get secret -n octank database-credentials
+echo $(k -n octank get secret database-credentials -o json | jq -r '.data.username'  | base64 -d)
+echo $(k -n octank get secret database-credentials -o json | jq -r '.data.password'  | base64 -d)	
 ```	
 
+#### Manage the master key
+```
+kubectl get secret -n kube-system -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml > master.yaml
+```
+```
+# in another cluster	
+kubectl apply -f master.yaml  
+kubectl get secret -n kube-system -l sealedsecrets.bitnami.com/sealed-secrets-key
+kubectl apply -f controller.yaml  
+kubectl get pods -n kube-system | grep sealed-secrets-controller
+	
+```	
 	
 	
 </details>	
