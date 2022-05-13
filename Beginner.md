@@ -1724,6 +1724,7 @@ sudo install -m 755 kubeseal /usr/local/bin/kubeseal
 #### installing the Custom Controller and CRD for SealedSecret
 ```
 wget https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.16.0/controller.yaml
+# image: quay.io/bitnami/sealed-secrets-controller:v0.16.0  => image: bitnami/sealed-secrets-controller:v0.16.0	
 kubectl apply -f controller.yaml
 kubectl get pods -n kube-system | grep sealed-secrets-controller
 
