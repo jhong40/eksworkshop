@@ -62,7 +62,6 @@ kubectl create quota blue-team --hard=limits.cpu=1,limits.memory=1G --namespace 
 kubectl create quota red-team --hard=services.loadbalancers=1 --namespace red  
 ```
   
-```  
 ### Pod Priority and Preemption
  ```
  cat <<EoF > ~/environment/resource-management/high-priority-class.yml
