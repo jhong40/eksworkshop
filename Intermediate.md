@@ -47,7 +47,7 @@ spec:
 EoF
 
 kubectl apply -f ~/environment/resource-management/high-usage-limit-range.yml --namespace high-usage
-  
+```  
 ### Resource Quota
 + One ResourceQuota for each namespace.
 + Users create resources (pods, services, etc.) in the namespace, and the quota system tracks usage to ensure it does not exceed hard resource limits defined in a ResourceQuota.
