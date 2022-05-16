@@ -1452,7 +1452,7 @@ rm -rf ${HOME}/environment/ebs_statefulset
 </details>  
 
 <details>
-  <summary>Encrypting Secrets with AWS Key Management Service (KMS)</summary>
+  <summary>Encrypting Secrets with AWS Key Management Service (KMS) Customer Managed Key (CMK)</summary>
    
 ```
 cat eksworkshop.yaml
