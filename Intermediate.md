@@ -62,6 +62,18 @@ spec:
       memory: 256Mi
     type: Container
   
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-limit-range
+spec:
+  limits:
+  - default:
+      cpu: 1
+    defaultRequest:
+      cpu: 0.5
+    type: Container
+  
 ```  
 ### Resource Quota
 + One ResourceQuota for each namespace.
