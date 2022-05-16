@@ -203,3 +203,129 @@ high-nginx-deployment   5/5     5            5           23s
 ```  
   
  </details>
+
+<details>
+  <summary>Deploy Jenkins</summary>
+  
+```
+aws codecommit create-repository --repository-name eksworkshop-app  
+```  
+```
+aws iam create-user \
+  --user-name git-user
+
+aws iam attach-user-policy \
+  --user-name git-user \
+  --policy-arn arn:aws:iam::aws:policy/AWSCodeCommitPowerUser
+
+aws iam create-service-specific-credential \
+  --user-name git-user --service-name codecommit.amazonaws.com \
+  | tee /tmp/gituser_output.json
+
+GIT_USERNAME=$(cat /tmp/gituser_output.json | jq -r '.ServiceSpecificCredential.ServiceUserName')
+GIT_PASSWORD=$(cat /tmp/gituser_output.json | jq -r '.ServiceSpecificCredential.ServicePassword')
+CREDENTIAL_ID=$(cat /tmp/gituser_output.json | jq -r '.ServiceSpecificCredential.ServiceSpecificCredentialId') 
+```  
+```
+sudo pip install git-remote-codecommit
+
+git clone codecommit::${AWS_REGION}://eksworkshop-app
+cd eksworkshop-app  
+```  
+```
+cat << EOF > server.go
+
+package main
+
+import (
+    "fmt"
+    "net/http"
+)
+
+func helloWorld(w http.ResponseWriter, r *http.Request){
+    fmt.Fprintf(w, "Hello World")
+}
+
+func main() {
+    http.HandleFunc("/", helloWorld)
+    http.ListenAndServe(":8080", nil)
+}
+EOF
+```
+```
+cat << EOF > server_test.go
+
+package main
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func Test_helloWorld(t *testing.T) {
+	req, err := http.NewRequest("GET", "http://domain.com/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res := httptest.NewRecorder()
+	helloWorld(res, req)
+
+	exp := "Hello World"
+	act := res.Body.String()
+	if exp != act {
+		t.Fatalf("Expected %s got %s", exp, act)
+	}
+}
+
+EOF
+```
+```
+cat << EOF > Jenkinsfile
+pipeline {
+  agent {
+    kubernetes {
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: golang
+    image: golang:1.13
+    command:
+    - cat
+    tty: true
+"""
+    }
+  }
+  stages {
+    stage('Run tests') {
+      steps {
+        container('golang') {
+          sh 'go test'
+        }
+      }
+    }
+    stage('Build') {
+        steps {
+            container('golang') {
+              sh 'go build -o eksworkshop-app'
+              archiveArtifacts "eksworkshop-app"
+            }
+            
+        }
+    }
+    
+  }
+}
+
+EOF
+```
+```
+git add --all && git commit -m "Initial commit." && git push
+cd ~/environment
+```  
+  
+</details>  
+  
