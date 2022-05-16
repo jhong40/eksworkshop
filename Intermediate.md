@@ -58,7 +58,7 @@ spec:
               memory: 1G  
 EoF
 kubectl apply -f ~/environment/resource-management/low-priority-deployment.yml
- 
+kubectl get deployment nginx-deployment --watch 
  ``` 
  ```
  cat <<EoF > ~/environment/resource-management/high-priority-deployment.yml
