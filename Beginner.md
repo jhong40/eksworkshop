@@ -1450,6 +1450,40 @@ cd ${HOME}/environment
 rm -rf ${HOME}/environment/ebs_statefulset
 ```    
 </details>  
+
+<details>
+  <summary>Encrypting Secrets with AWS Key Management Service (KMS)</summary>
+   
+```
+cat eksworkshop.yaml
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: eksworkshop-eksctl
+  region: us-west-1
+  version: "1.21"
+
+availabilityZones: ["us-west-1a", "us-west-1b", "us-west-1c"]
+
+managedNodeGroups:
+- name: nodegroup
+  desiredCapacity: 2
+  instanceType: m4.xlarge
+  ssh:
+    enableSsm: true
+
+# To enable all of the control plane logs, uncomment below:
+# cloudWatch:
+#  clusterLogging:
+#    enableTypes: ["*"]
+
+secretsEncryption:
+  keyARN: arn:aws-us-gov:kms:us-gov-west-1:108225833708:key/cfde23c8-e754-4c5a-b051-5c8759b178f3	
+```	
+</details>
+	
  
 <details>
   <summary>MOUNTING SECRETS FROM AWS SECRETS MANAGER</summary>
