@@ -2,7 +2,7 @@
 ## Intermediate
 
 <details>
-  <summary>IAM Groups</summary>
+  <summary>Pod Priority and Preemption</summary>
   
  ```
  cat <<EoF > ~/environment/resource-management/high-priority-class.yml
