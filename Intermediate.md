@@ -326,6 +326,16 @@ EOF
 git add --all && git commit -m "Initial commit." && git push
 cd ~/environment
 ```  
-  
+```
+eksctl utils associate-iam-oidc-provider --cluster eksworkshop-eksctl --approve
+	
+eksctl create iamserviceaccount \
+    --name jenkins \
+    --namespace default \
+    --cluster eksworkshop-eksctl \
+    --attach-policy-arn arn:aws:iam::aws:policy/AWSCodeCommitPowerUser \
+    --approve \
+    --override-existing-serviceaccounts
+```	
 </details>  
   
