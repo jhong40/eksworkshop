@@ -49,7 +49,7 @@ EoF
 kubectl apply -f ~/environment/resource-management/high-usage-limit-range.yml --namespace high-usage
 ```  
 ```
-## Set default
+## Set default (Not in EKSworkshop)
 apiVersion: v1
 kind: LimitRange
 metadata:
