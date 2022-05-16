@@ -48,6 +48,21 @@ EoF
 
 kubectl apply -f ~/environment/resource-management/high-usage-limit-range.yml --namespace high-usage
 ```  
+```
+## Set default
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+spec:
+  limits:
+  - default:
+      memory: 512Mi
+    defaultRequest:
+      memory: 256Mi
+    type: Container
+  
+```  
 ### Resource Quota
 + One ResourceQuota for each namespace.
 + Users create resources (pods, services, etc.) in the namespace, and the quota system tracks usage to ensure it does not exceed hard resource limits defined in a ResourceQuota.
