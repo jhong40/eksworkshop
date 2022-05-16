@@ -2,8 +2,54 @@
 ## Intermediate
 
 <details>
-  <summary>Pod Priority and Preemption</summary>
+  <summary>Resource Management</summary>
   
+  
+### Resource limit 
++ Enforce minimum and maximum compute resources usage per Pod or Container in a namespace.
++ Enforce minimum and maximum storage request per PersistentVolumeClaim in a namespace.
++ Enforce a ratio between request and limit for a resource in a namespace.
++ Set default request/limit for compute resources in a namespace and automatically inject them to Containers at runtime.
+```
+cat <<EoF > ~/environment/resource-management/low-usage-limit-range.yml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: low-usage-range
+spec:
+  limits:
+  - max:
+      cpu: 1
+      memory: 300M 
+    min:
+      cpu: 0.5
+      memory: 100M
+    type: Container
+EoF
+
+kubectl apply -f ~/environment/resource-management/low-usage-limit-range.yml --namespace low-usage
+
+
+cat <<EoF > ~/environment/resource-management/high-usage-limit-range.yml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: high-usage-range
+spec:
+  limits:
+  - max:
+      cpu: 2
+      memory: 2G 
+    min:
+      cpu: 1
+      memory: 1G
+    type: Container
+EoF
+
+kubectl apply -f ~/environment/resource-management/high-usage-limit-range.yml --namespace high-usage
+  
+```  
+### Pod Priority and Preemption
  ```
  cat <<EoF > ~/environment/resource-management/high-priority-class.yml
 apiVersion: scheduling.k8s.io/v1
