@@ -337,5 +337,57 @@ eksctl create iamserviceaccount \
     --approve \
     --override-existing-serviceaccounts
 ```	
+### Deploy Jenkins
+```
+cat << EOF > values.yaml
+---
+controller:
+  # Used for label app.kubernetes.io/component
+  componentName: "jenkins-controller"
+  image: "jenkins/jenkins"
+  tag: "2.289.2-lts-jdk11"
+  additionalPlugins:
+    - aws-codecommit-jobs:0.3.0
+    - aws-java-sdk:1.11.995
+    - junit:1.51
+    - ace-editor:1.1
+    - workflow-support:3.8
+    - pipeline-model-api:1.8.5
+    - pipeline-model-definition:1.8.5
+    - pipeline-model-extensions:1.8.5
+    - workflow-job:2.41
+    - credentials-binding:1.26
+    - aws-credentials:1.29
+    - credentials:2.5
+    - lockable-resources:2.11
+    - branch-api:2.6.4
+  resources:
+    requests:
+      cpu: "1024m"
+      memory: "4Gi"
+    limits:
+      cpu: "4096m"
+      memory: "8Gi"
+  javaOpts: "-Xms4000m -Xmx4000m"
+  servicePort: 80
+  serviceType: LoadBalancer
+agent:
+  Enabled: false
+rbac:
+  create: true
+serviceAccount:
+  create: false
+  name: "jenkins"
+EOF
+```
+```
+helm install cicd stable/jenkins -f values.yaml
+kubectl get pods -w
+	
+```	
+	
+	
+	
+	
 </details>  
   
