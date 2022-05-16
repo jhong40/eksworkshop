@@ -30,6 +30,35 @@ EoF
 
 kubectl apply -f ~/environment/resource-management/low-priority-class.yml
 
+ ```
+ ```
+ cat <<EoF > ~/environment/resource-management/low-priority-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx-deployment
+  name: nginx-deployment
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: nginx-deployment
+  template:
+    metadata:
+      labels:
+        app: nginx-deployment
+    spec:
+      priorityClassName: "low-priority"      
+      containers:            
+       - image: nginx
+         name: nginx-deployment
+         resources:
+           limits:
+              memory: 1G  
+EoF
+kubectl apply -f ~/environment/resource-management/low-priority-deployment.yml
+ 
  ``` 
  ```
  cat <<EoF > ~/environment/resource-management/high-priority-deployment.yml
@@ -59,6 +88,7 @@ spec:
 EoF
 kubectl apply -f ~/environment/resource-management/high-priority-deployment.yml
  ``` 
+  
 ```
 kubectl get deployment  --watch
 
