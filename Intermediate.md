@@ -389,7 +389,7 @@ kubectl get pods -w
 
 
 <details>
-  <summary>LOGGING WITH AMAZON OPENSEARCH, FLUENT BIT</summary>
+  <summary>Loggin with Amazon OpenSearch, Fluent Bit</summary>
 
 ```
 eksctl utils associate-iam-oidc-provider \
