@@ -433,6 +433,33 @@ eksctl create iamserviceaccount \
 kubectl -n logging describe sa fluent-bit
 
 ```	
+#### PROVISION AN AMAZON OPENSEARCH CLUSTER
+Fine-grained access control offers two forms of authentication and authorization:
+
++ A built-in user database, which makes it easy to configure usernames and passwords inside of Amazon OpenSearch cluster.
++ AWS Identity and Access Management (IAM) integration, which lets you map IAM principals to permissions.	
+```
+# name of our Amazon OpenSearch cluster
+export ES_DOMAIN_NAME="eksworkshop-logging"
+
+# Elasticsearch version
+export ES_VERSION="OpenSearch_1.0"
+
+# OpenSearch Dashboards admin user
+export ES_DOMAIN_USER="eksworkshop"
+
+# OpenSearch Dashboards admin password
+export ES_DOMAIN_PASSWORD="$(openssl rand -base64 12)_Ek1$"
+
+# Download and update the template using the variables created previously
+curl -sS https://www.eksworkshop.com/intermediate/230_logging/deploy.files/es_domain.json \
+  | envsubst > ~/environment/logging/es_domain.json
+sed -i 's/:aws:/:aws-us-gov:/' ~/environment/logging/es_domain.json
 	
-  
+# Create the cluster
+aws opensearch create-domain \
+  --cli-input-json  file://~/environment/logging/es_domain.json
+	
+	
+```  
 </details>  
