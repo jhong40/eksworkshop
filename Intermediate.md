@@ -693,3 +693,90 @@ siege  -t 15S -c 200 -i http://${WP_ELB}    # 200 concurent user connection for 
 #### VIEWING OUR COLLECTED LOGS
 	
 </details>
+
+
+<details>
+  <summary>Open Policy Agent (OPA)</summary>
+
+#### OPA GATEKEEPER SETUP IN EKS
+```
+kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/release-3.1/deploy/gatekeeper.yaml
+kubectl get pods -n gatekeeper-system
+
+kubectl logs -l control-plane=audit-controller -n gatekeeper-system
+kubectl logs -l control-plane=controller-manager -n gatekeeper-system
+```	
+#### Build Constraint Templates
+```
+cat > /tmp/constrainttemplate.yaml <<EOF
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspprivilegedcontainer
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPPrivilegedContainer
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8spspprivileged
+
+        violation[{"msg": msg, "details": {}}] {
+            c := input_containers[_]
+            c.securityContext.privileged
+            msg := sprintf("Privileged container is not allowed: %v, securityContext: %v", [c.name, c.securityContext])
+        }
+
+        input_containers[c] {
+            c := input.review.object.spec.containers[_]
+        }
+
+        input_containers[c] {
+            c := input.review.object.spec.initContainers[_]
+        }
+EOF
+
+kubectl create -f /tmp/constrainttemplate.yaml	
+```	
+#### Build Constrain
+```
+cat > /tmp/constraint.yaml <<EOF
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPPrivilegedContainer
+metadata:
+  name: psp-privileged-container
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+EOF
+
+kubectl create -f /tmp/constraint.yaml	
+```	
+#### Test
+```
+kubectl get constraint
+kubectl get constrainttemplate	
+```	
+```
+cat > /tmp/example.yaml <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad-nginx
+  labels:
+    app: bad-nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    securityContext:
+      privileged: true
+EOF
+kubectl create -f /tmp/example.yaml
+```
+	
+</details>	
