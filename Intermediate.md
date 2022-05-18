@@ -333,7 +333,7 @@ eksctl create iamserviceaccount \
     --name jenkins \
     --namespace default \
     --cluster eksworkshop-eksctl \
-    --attach-policy-arn arn:aws:iam::aws:policy/AWSCodeCommitPowerUser \
+    --attach-policy-arn arn:$AWS:iam::aws:policy/AWSCodeCommitPowerUser \
     --approve \
     --override-existing-serviceaccounts
 ```	
@@ -409,7 +409,7 @@ cat <<EoF > ~/environment/logging/fluent-bit-policy.json
             "Action": [
                 "es:ESHttp*"
             ],
-            "Resource": "arn:aws:es:${AWS_REGION}:${ACCOUNT_ID}:domain/${ES_DOMAIN_NAME}",
+            "Resource": "arn:$AWS:es:${AWS_REGION}:${ACCOUNT_ID}:domain/${ES_DOMAIN_NAME}",
             "Effect": "Allow"
         }
     ]
@@ -426,7 +426,7 @@ eksctl create iamserviceaccount \
     --name fluent-bit \
     --namespace logging \
     --cluster eksworkshop-eksctl \
-    --attach-policy-arn "arn:aws:iam::${ACCOUNT_ID}:policy/fluent-bit-policy" \
+    --attach-policy-arn "arn:$AWS:iam::${ACCOUNT_ID}:policy/fluent-bit-policy" \
     --approve \
     --override-existing-serviceaccounts
 
