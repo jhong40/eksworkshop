@@ -670,4 +670,26 @@ curl -s https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-containe
 
 kubectl -n amazon-cloudwatch get daemonsets	
 ```	
+#### VERIFY CLOUDWATCH CONTAINER INSIGHTS IS WORKING
+```
+## not working
+echo "
+Use the URL below to access Cloudwatch Container Insights in $AWS_REGION:
+
+https://console.aws.amazon.com/cloudwatch/home?region=${AWS_REGION}#cw:dashboard=Container;context=~(clusters~'eksworkshop-eksctl~dimensions~(~)~performanceType~'Service)"
+```	
+#### PREPARING YOUR LOAD TEST
+```
+# sudo yum install siege -y
+sudo apt update; sudo apt install siege -y	
+siege --version
+```
+#### RUNNING THE LOAD TEST
+```
+export WP_ELB=$(kubectl -n wordpress-cwi get svc understood-zebu-wordpress -o jsonpath="{.status.loadBalancer.ingress[].hostname}")
+siege  -t 15S -c 200 -i http://${WP_ELB}    # 200 concurent user connection for 15 sec
+```
+#### VIEWING OUR COLLECTED METRICS
+#### VIEWING OUR COLLECTED LOGS
+	
 </details>
