@@ -816,5 +816,41 @@ argocd login $ARGOCD_SERVER --username admin --password $ARGO_PWD --insecure
 # 'admin:login' logged in successfully
 # Context 'aa759dbb52423474bb26b73807bc8294-1571122682.us-gov-west-1.elb.amazonaws.com' updated	
 ```	
+#### Deploy Applicaiton
++ https://github.com/jhong40/ecsdemo-nodejs.git
+```
+CONTEXT_NAME=`kubectl config view -o jsonpath='{.current-context}'`
+argocd cluster add $CONTEXT_NAME
+```
+```
+kubectl create namespace ecsdemo-nodejs
+argocd app create ecsdemo-nodejs --repo https://github.com/jhong40/ecsdemo-nodejs.git --path kubernetes --dest-server https://kubernetes.default.svc --dest-namespace ecsdemo-nodejs
+```	
+```
+argocd app get ecsdemo-nodejs
+```
+```
+argocd app sync ecsdemo-nodejs
+```
+#### Update spec.replicas: 2 in ecsdemo-nodejs/kubernetes/deployment.yaml
+	
+#### Web GUI Access
+```
+echo $ARGOCD_SERVER
+echo $ARGO_PWD
+```	
+
+#### Clean UP
+```
+argocd app delete ecsdemo-nodejs -y
+watch argocd app get ecsdemo-nodejs
+```
+```
+kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.0.4/manifests/install.yaml
+kubectl delete ns argocd
+kubectl delete ns ecsdemo-nodejs
+
+```	
+	
 	
 </details>
