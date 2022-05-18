@@ -467,7 +467,46 @@ if [ $(aws opensearch describe-domain --domain-name ${ES_DOMAIN_NAME} --query 'D
     tput setaf 2; echo "The Amazon OpenSearch cluster is ready"
   else
     tput setaf 1;echo "The Amazon OpenSearch cluster is NOT ready"
-fi
-	
+fi	
+```
+#### Configure Amazon OpenSearch Acess -  Maping role
+```
+# We need to retrieve the Fluent Bit Role ARN
+export FLUENTBIT_ROLE=$(eksctl get iamserviceaccount --cluster eksworkshop-eksctl --namespace logging -o json | jq '.[].status.roleARN' -r)
+
+# Get the Amazon OpenSearch Endpoint
+export ES_ENDPOINT=$(aws opensearch describe-domain --domain-name ${ES_DOMAIN_NAME} --output text --query "DomainStatus.Endpoint")
+
+# Update the Elasticsearch internal database
+curl -sS -u "${ES_DOMAIN_USER}:${ES_DOMAIN_PASSWORD}" \
+    -X PATCH \
+    https://${ES_ENDPOINT}/_opendistro/_security/api/rolesmapping/all_access?pretty \
+    -H 'Content-Type: application/json' \
+    -d'
+[
+  {
+    "op": "add", "path": "/backend_roles", "value": ["'${FLUENTBIT_ROLE}'"]
+  }
+]
+'
+```	
+#### Deploy Fluent Bit
+```
+cd ~/environment/logging
+
+# get the Amazon OpenSearch Endpoint
+export ES_ENDPOINT=$(aws es describe-elasticsearch-domain --domain-name ${ES_DOMAIN_NAME} --output text --query "DomainStatus.Endpoint")
+
+curl -Ss https://www.eksworkshop.com/intermediate/230_logging/deploy.files/fluentbit.yaml \
+    | envsubst > ~/environment/logging/fluentbit.yaml
+
+kubectl apply -f ~/environment/logging/fluentbit.yaml
+kubectl --namespace=logging get pods
+```
+#### OpenSearch Dashboard
+```
+echo "OpenSearch Dashboards URL: https://${ES_ENDPOINT}/_dashboards/
+OpenSearch Dashboards user: ${ES_DOMAIN_USER}
+OpenSearch Dashboards password: ${ES_DOMAIN_PASSWORD}"
 ```	
 </details>  
