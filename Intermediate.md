@@ -454,7 +454,7 @@ export ES_DOMAIN_PASSWORD="$(openssl rand -base64 12)_Ek1$"
 # Download and update the template using the variables created previously
 curl -sS https://www.eksworkshop.com/intermediate/230_logging/deploy.files/es_domain.json \
   | envsubst > ~/environment/logging/es_domain.json
-sed -i 's/:aws:/:aws-us-gov:/' ~/environment/logging/es_domain.json
+sed -i 's/:aws:/:aws-us-gov:/' ~/environment/logging/es_domain.json    #######
 	
 # Create the cluster
 aws opensearch create-domain \
