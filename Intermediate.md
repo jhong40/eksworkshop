@@ -643,5 +643,31 @@ Username: user
 Password: $ADMIN_PASSWORD
 "
 ```	
-	
+#### PREPARING TO INSTALL CONTAINER INSIGHTS
+```
+export STACK_NAME=$(eksctl get nodegroup --cluster eksworkshop-eksctl -o json | jq -r '.[].StackName')
+export ROLE_NAME=$(aws cloudformation describe-stack-resources --stack-name $STACK_NAME | jq -r '.StackResources[] | select(.ResourceType=="AWS::IAM::Role") | .PhysicalResourceId')
+
+test -n "$ROLE_NAME" && echo ROLE_NAME is "$ROLE_NAME" || echo ROLE_NAME is not set
+```	
+```
+aws iam attach-role-policy \
+  --role-name $ROLE_NAME \
+  --policy-arn arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+aws iam list-attached-role-policies --role-name $ROLE_NAME | grep CloudWatchAgentServerPolicy || echo 'Policy not found'
+```	
+#### INSTALLING CONTAINER INSIGHTS
++ Create the Namespace amazon-cloudwatch.
++ Create all the necessary security objects for both DaemonSet:
+   ++ SecurityAccount.
+++ ClusterRole.
+++ ClusterRoleBinding.
++ Deploy Cloudwatch-Agent (responsible for sending the metrics to CloudWatch) as a DaemonSet.
++ Deploy fluentd (responsible for sending the logs to Cloudwatch) as a DaemonSet.
++ Deploy ConfigMap configurations for both DaemonSets.	
+```
+curl -s https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/eksworkshop-eksctl/;s/{{region_name}}/${AWS_REGION}/" | kubectl apply -f -
+
+kubectl -n amazon-cloudwatch get daemonsets	
+```	
 </details>
