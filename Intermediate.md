@@ -559,10 +559,47 @@ helm install prometheus prometheus-community/prometheus \
     --set alertmanager.persistentVolume.storageClass="gp2" \
     --set server.persistentVolume.storageClass="gp2"
 ```
+#### Deploy Prometheus	
 ```
 # ip add # get eth0 ip address
 # kubectl port-forward -n prometheus  deploy/prometheus-server 9090:9090	
 kubectl port-forward --address 10.0.2.15 -n prometheus  deploy/prometheus-server 9090:9090
+http://localhost:9090/targets	
+```	
+#### Deploy Grafana
+```
+mkdir ${HOME}/environment/grafana
+
+cat << EoF > ${HOME}/environment/grafana/grafana.yaml
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-server.prometheus.svc.cluster.local
+      access: proxy
+      isDefault: true
+EoF
+
+kubectl create namespace grafana
+
+helm install grafana grafana/grafana \
+    --namespace grafana \
+    --set persistence.storageClassName="gp2" \
+    --set persistence.enabled=true \
+    --set adminPassword='EKS!sAWSome' \
+    --values ${HOME}/environment/grafana/grafana.yaml \
+    --set service.type=LoadBalancer
+
+kubectl get all -n grafana
+```
+#### Get the Grafana UI and pass
+```
+export ELB=$(kubectl get svc -n grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+echo "http://$ELB"
+
+kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 	
 ```	
 </details>	
