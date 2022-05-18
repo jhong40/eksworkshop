@@ -600,7 +600,16 @@ export ELB=$(kubectl get svc -n grafana grafana -o jsonpath='{.status.loadBalanc
 echo "http://$ELB"
 
 kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
-	
+```	
+#### Clean UP
+```
+helm uninstall prometheus --namespace prometheus
+kubectl delete ns prometheus
+
+helm uninstall grafana --namespace grafana
+kubectl delete ns grafana
+
+rm -rf ${HOME}/environment/grafana
 ```	
 </details>	
 
