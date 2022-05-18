@@ -817,4 +817,4 @@ argocd login $ARGOCD_SERVER --username admin --password $ARGO_PWD --insecure
 # Context 'aa759dbb52423474bb26b73807bc8294-1571122682.us-gov-west-1.elb.amazonaws.com' updated	
 ```	
 	
-	</details>
+</details>
