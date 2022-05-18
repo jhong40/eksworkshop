@@ -777,6 +777,8 @@ spec:
       privileged: true
 EOF
 kubectl create -f /tmp/example.yaml
+	
+## Error from server ([denied by psp-privileged-container] Privileged container is not allowed: nginx, securityContext: {"privileged": true}): error when creating "/tmp/example.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [denied by psp-privileged-container] Privileged container is not allowed: nginx, securityContext: {"privileged": true}	
 ```
 	
 </details>	
