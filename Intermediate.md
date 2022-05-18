@@ -560,7 +560,9 @@ helm install prometheus prometheus-community/prometheus \
     --set server.persistentVolume.storageClass="gp2"
 ```
 ```
-kubectl port-forward -n prometheus deploy/prometheus-server 9090:9090
+# ip add # get eth0 ip address
+# kubectl port-forward -n prometheus  deploy/prometheus-server 9090:9090	
+kubectl port-forward --address 10.0.2.15 -n prometheus  deploy/prometheus-server 9090:9090
 	
 ```	
 </details>	
