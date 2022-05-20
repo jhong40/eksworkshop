@@ -863,7 +863,8 @@ kubectl get nodes -o wide
 ```
 KUBEBENCH_URL=$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | jq -r '.assets[] | select(.name | contains("amd64.rpm")) | .browser_download_url')
 sudo yum install -y $KUBEBENCH_URL
-kube-bench --benchmark eks-1.0
+# kube-bench --benchmark eks-1.0
+kube-bench --benchmark eks-1.0.1	
 ```	
 ```
 sudo yum remove kube-bench -y
