@@ -37,6 +37,149 @@ kubectl -n bookinfo \
 export GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 echo "http://${GATEWAY_URL}/productpage"
 ```  
+## TRAFFIC MANAGEMENT
+#### Create the default destination rules 
+```
+kubectl -n bookinfo apply \
+  -f ${HOME}/environment/istio-${ISTIO_VERSION}/samples/bookinfo/networking/destination-rule-all.yaml
+kubectl -n bookinfo get destinationrules -o yaml
+```
+#### Route traffic to one version of a service reviews:v1
+```
+kubectl -n bookinfo \
+  apply -f ${HOME}/environment/istio-${ISTIO_VERSION}/samples/bookinfo/networking/virtual-service-all-v1.yaml
+kubectl -n bookinfo get virtualservices reviews -o yaml 
+```  
+```
+### output  
+spec:
+  hosts:
+  - reviews
+  http:
+  - route:
+    - destination:
+        host: reviews
+        subset: v1  
+```  
+## Route based on user identity
+```
+kubectl -n bookinfo \
+  apply -f ${HOME}/environment/istio-${ISTIO_VERSION}/samples/bookinfo/networking/virtual-service-reviews-test-v2.yaml
+kubectl -n bookinfo get virtualservices reviews -o yaml
+```
+```
+## output
+spec:
+  hosts:
+  - reviews
+  http:
+  - match:
+    - headers:
+        end-user:
+          exact: jason
+    route:
+    - destination:
+        host: reviews
+        subset: v2
+  - route:
+    - destination:
+        host: reviews
+        subset: v1
+## Click Sign in from the top right corner of the page.
+Log in using jason as user name with a blank password.
+You will only see reviews:v2 all the time. Others will see reviews:v1.  
+```
+## Injecting an HTTP delay fault
+```
+kubectl -n bookinfo \
+  apply -f ${HOME}/environment/istio-${ISTIO_VERSION}/samples/bookinfo/networking/virtual-service-ratings-test-delay.yaml
+kubectl -n bookinfo get virtualservice ratings -o yaml
+```
+```
+# output
+spec:
+  hosts:
+  - ratings
+  http:
+  - fault:
+      delay:
+        fixedDelay: 7s
+        percentage:
+          value: 100
+    match:
+    - headers:
+        end-user:
+          exact: jason
+    route:
+    - destination:
+        host: ratings
+        subset: v1
+  - route:
+    - destination:
+        host: ratings
+        subset: v1
+```
+```
+kubectl -n bookinfo \
+  apply -f ${HOME}/environment/istio-${ISTIO_VERSION}/samples/bookinfo/networking/virtual-service-ratings-test-abort.yaml
+kubectl -n bookinfo get virtualservice ratings -o yaml
+```
+```
+spec:
+  hosts:
+  - ratings
+  http:
+  - fault:
+      abort:
+        httpStatus: 500
+        percentage:
+          value: 100
+    match:
+    - headers:
+        end-user:
+          exact: jason
+    route:
+    - destination:
+        host: ratings
+        subset: v1
+  - route:
+    - destination:
+        host: ratings
+        subset: v1
+ ```
+### Traffic Shifting
+```
+kubectl -n bookinfo \
+  apply -f ${HOME}/environment/istio-${ISTIO_VERSION}/samples/bookinfo/networking/virtual-service-all-v1.yaml
+##  transfer 50% of the traffic from reviews:v1 to reviews:v3  
+kubectl -n bookinfo \
+  apply -f ${HOME}/environment/istio-${ISTIO_VERSION}/samples/bookinfo/networking/virtual-service-reviews-50-v3.yaml
+kubectl -n bookinfo get virtualservice reviews -o yaml
+```
+```
+spec:
+  hosts:
+  - reviews
+  http:
+  - route:
+    - destination:
+        host: reviews
+        subset: v1
+      weight: 50
+    - destination:
+        host: reviews
+        subset: v3
+      weight: 50
+```  
+```
+## decide review 3 is good. 100% traffic -> reviews:v3 (red colored star ratings
+kubectl -n bookinfo apply -f ${HOME}/environment/istio-${ISTIO_VERSION}/samples/bookinfo/networking/virtual-service-reviews-v3.yaml
+```  
+  
+  
+  
+  
+</details>
   
   
   
