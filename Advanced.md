@@ -205,8 +205,37 @@ $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadat
   
 ## ISTIO,Istio Mesh Dashboard  
 ```  
+## Clean UP
+```
+killall kubectl
+killall watch
   
-  
+export ISTIO_RELEASE=$(echo $ISTIO_VERSION |cut -d. -f1,2)
+
+kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-${ISTIO_RELEASE}/samples/addons/jaeger.yaml
+
+kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-${ISTIO_RELEASE}/samples/addons/kiali.yaml
+
+kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-${ISTIO_RELEASE}/samples/addons/prometheus.yaml
+
+kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-${ISTIO_RELEASE}/samples/addons/grafana.yaml
+
+export NAMESPACE="bookinfo"
+
+${HOME}/environment/istio-${ISTIO_VERSION}/samples/bookinfo/platform/kube/cleanup.sh
+
+
+istioctl manifest generate --set profile=demo | kubectl delete -f -
+
+kubectl delete ns bookinfo
+kubectl delete ns istio-system
+
+cd ~/environment
+rm -rf istio-${ISTIO_VERSION}
+
+unset ISTIO_VERSION
+```  
+
   
   
 </details>
