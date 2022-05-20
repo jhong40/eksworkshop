@@ -175,6 +175,30 @@ spec:
 ## decide review 3 is good. 100% traffic -> reviews:v3 (red colored star ratings
 kubectl -n bookinfo apply -f ${HOME}/environment/istio-${ISTIO_VERSION}/samples/bookinfo/networking/virtual-service-reviews-v3.yaml
 ```  
+## MONITOR & VISUALIZE  
+#### Install Grafana and Prometheus
+```
+export ISTIO_RELEASE=$(echo $ISTIO_VERSION |cut -d. -f1,2)
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-${ISTIO_RELEASE}/samples/addons/prometheus.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-${ISTIO_RELEASE}/samples/addons/grafana.yaml
+kubectl -n istio-system get deploy grafana prometheus
+```  
+#### Install Jaeger and Kiali
+```
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-${ISTIO_RELEASE}/samples/addons/jaeger.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-${ISTIO_RELEASE}/samples/addons/kiali.yaml   ## has issue
+kubectl -n istio-system get deploy jaeger kiali
+```  
+#### Generate traffic to collect telemetry data
+```
+export GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+watch --interval 1 curl -s -I -XGET "http://${GATEWAY_URL}/productpage"
+``` 
+#### Launch Kiali
+```
+kubectl -n istio-system port-forward \
+$(kubectl -n istio-system get pod -l app=kiali -o jsonpath='{.items[0].metadata.name}') 8080:20001
+```
   
   
   
