@@ -4,7 +4,8 @@
   <summary>IAM Groups</summary>
   
  ```
- POLICY=$(echo -n '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws-us-gov:iam::'; echo -n "$ACCOUNT_ID"; echo -n ':root"},"Action":"sts:AssumeRole","Condition":{}}]}')
+export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+export POLICY=$(echo -n '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:'; echo -n "$AWS"; echo -n ':iam::'; echo -n "$ACCOUNT_ID"; echo -n ':root"},"Action":"sts:AssumeRole","Condition":{}}]}')
 
 echo ACCOUNT_ID=$ACCOUNT_ID
 echo POLICY=$POLICY
