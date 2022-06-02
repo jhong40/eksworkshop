@@ -63,7 +63,7 @@ DEV_GROUP_POLICY=$(echo -n '{
       "Sid": "AllowAssumeOrganizationAccountRole",
       "Effect": "Allow",
       "Action": "sts:AssumeRole",
-       "Resource": "arn'; echo -n "$AWS"; echo -n 'iam::'; echo -n "$ACCOUNT_ID"; echo -n ':role/k8sDev"
+    "Resource": "arn:'; echo -n "$AWS"; echo -n ':iam::'; echo -n "$ACCOUNT_ID"; echo -n ':role/k8sDev"
     }
   ]
 }')
@@ -84,7 +84,7 @@ INTEG_GROUP_POLICY=$(echo -n '{
       "Sid": "AllowAssumeOrganizationAccountRole",
       "Effect": "Allow",
       "Action": "sts:AssumeRole",
-       "Resource": "arn'; echo -n "$AWS"; echo -n 'iam::'; echo -n "$ACCOUNT_ID"; echo -n ':role/k8sInteg"
+    "Resource": "arn:'; echo -n "$AWS"; echo -n ':iam::'; echo -n "$ACCOUNT_ID"; echo -n ':role/k8sInteg"
     }
   ]
 }')
