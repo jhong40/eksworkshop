@@ -2147,6 +2147,14 @@ kubectl --namespace secretslab \
 kubectl --namespace secretslab exec -it consumesecret -- cat /tmp/test-creds	
 ```	
 #### Let’s see if the CloudTrail event for our secret retrieval is now visible. If you go to CloudTrail you should see a record available if you search for the Event name Decrypt with output similar to the following screenshot. If the event hasn’t shown up yet, wait a few minutes and try again.
+
+### CleanUP	
+```
+rm -f test-creds
+rm -f podconsumingsecret.yaml
+kubectl delete ns secretslab
+
+```
 	
 #### Encrypting Secrets with AWS Key Management Service (KMS) Customer Managed Key (CMK)
 	
