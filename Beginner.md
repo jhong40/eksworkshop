@@ -2255,7 +2255,7 @@ spec:
         volumeMounts:
         - name: secrets-store-inline
           mountPath: "/mnt/secrets"
-          readOnly: true```
+          readOnly: true
       volumes:
       - name: secrets-store-inline
         csi:
@@ -2265,6 +2265,8 @@ spec:
             secretProviderClass: nginx-deployment-spc
 EOF
 
+```
+```	
 kubectl apply -f nginx-deployment.yaml
 sleep 5
 kubectl get pods -l "app=nginx"
