@@ -1,5 +1,4 @@
-# EKSWorkshop
-
+# 
 Resume:
 https://www.johandry.com/
 
