@@ -1883,6 +1883,7 @@ helm upgrade --install aws-ebs-csi-driver \
 kubectl -n kube-system rollout status deployment ebs-csi-controller 
 ```  
 #### Define Storage Class
+Dynamic Volume Provisioning allows storage volumes to be created on-demand. StorageClass should be pre-created to define which provisioner should be used and what parameters should be passed when dynamic provisioning is invoked.	
 ```
 cat << EoF > ${HOME}/environment/ebs_statefulset/mysql-storageclass.yaml
 kind: StorageClass
