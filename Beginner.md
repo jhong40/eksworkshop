@@ -2101,6 +2101,55 @@ managedNodeGroups:
 secretsEncryption:
   keyARN: arn:aws-us-gov:kms:us-gov-west-1:108225833708:key/cfde23c8-e754-4c5a-b051-5c8759b178f3	
 ```	
+```
+kubectl create ns secretslab
+echo -n "am i safe?" > ./test-creds
+kubectl create secret \
+        generic test-creds \
+        --from-file=test-creds=./test-creds \
+        --namespace secretslab
+```
+```	
+kubectl get secret test-creds \
+  -o jsonpath="{.data.test-creds}" \
+  --namespace secretslab | \
+  base64 --decode
+```
+```
+cat << EOF > podconsumingsecret.yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: consumesecret
+spec:
+  containers:
+  - name: shell
+    image: amazonlinux:2
+    command:
+      - "bin/bash"
+      - "-c"
+      - "cat /tmp/test-creds && sleep 10000"
+    volumeMounts:
+      - name: sec
+        mountPath: "/tmp"
+        readOnly: true
+  volumes:
+  - name: sec
+    secret:
+      secretName: test-creds
+EOF
+
+kubectl --namespace secretslab \
+        apply -f podconsumingsecret.yaml	
+```	
+```
+kubectl --namespace secretslab exec -it consumesecret -- cat /tmp/test-creds	
+```	
+#### Let’s see if the CloudTrail event for our secret retrieval is now visible. If you go to CloudTrail you should see a record available if you search for the Event name Decrypt with output similar to the following screenshot. If the event hasn’t shown up yet, wait a few minutes and try again.
+	
+#### Encrypting Secrets with AWS Key Management Service (KMS) Customer Managed Key (CMK)
+	
 </details>
 	
  
