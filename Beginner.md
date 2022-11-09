@@ -1823,7 +1823,7 @@ kubectl label nodes --all disktype-
 	
 
 <details>
-  <summary>Stateful Set: EBS volume</summary>
+  <summary>Stateful Set: AWS EBS CSI Driver</summary>
   
   Container Storage Interface (CSI) - Amazon EBS CSI Driver
   ```
