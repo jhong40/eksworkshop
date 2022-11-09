@@ -1636,6 +1636,191 @@ aws iam delete-policy \
     --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/AWSLoadBalancerControllerIAMPolicy
 ```  
 </details>  
+	
+	
+<details>
+  <summary>Assigned Pod to Node</summary>
+  
+```
+kubectl get nodes
+kubectl get nodes --selector disktype=ssd  
+```
+```
+# export the first node name as a variable
+export FIRST_NODE_NAME=$(kubectl get nodes -o json | jq -r '.items[0].metadata.name')
+
+# add the label to the node
+kubectl label nodes ${FIRST_NODE_NAME} disktype=ssd
+kubectl get nodes --selector disktype=ssd  
+``` 
+```
+cat <<EoF > ~/environment/pod-nginx.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    env: test
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    imagePullPolicy: IfNotPresent
+  nodeSelector:
+    disktype: ssd
+EoF
+kubectl apply -f ~/environment/pod-nginx.yaml
+kubectl get pods -o wide
+```  
+## AFFINITY AND ANTI-AFFINITY
+```
+# export the first node name as a variable
+export FIRST_NODE_NAME=$(kubectl get nodes -o json | jq -r '.items[0].metadata.name')
+
+kubectl label nodes ${FIRST_NODE_NAME} azname=az1
+
+cat <<EoF > ~/environment/pod-with-node-affinity.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: with-node-affinity
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: azname
+            operator: In
+            values:
+            - az1
+            - az2
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1
+        preference:
+          matchExpressions:
+          - key: another-node-label-key
+            operator: In
+            values:
+            - another-node-label-value
+  containers:
+  - name: with-node-affinity
+    image: us.gcr.io/k8s-artifacts-prod/pause:2.0
+EoF
+kubectl apply -f ~/environment/pod-with-node-affinity.yaml
+kubectl get pods -o wide  
+```  
+  
+```
+kubectl delete -f ~/environment/pod-with-node-affinity.yaml
+
+kubectl label nodes ${FIRST_NODE_NAME} azname-
+```  
+### Second Node  
+```
+export SECOND_NODE_NAME=$(kubectl get nodes -o json | jq -r '.items[1].metadata.name')
+
+kubectl label nodes ${SECOND_NODE_NAME} azname=az1
+kubectl apply -f ~/environment/pod-with-node-affinity.yaml
+  
+kubectl get pods -o wide  
+```
+```
+kubectl delete -f ~/environment/pod-nginx.yaml
+kubectl delete -f ~/environment/pod-with-node-affinity.yaml
+```  
+### Always co-located in the same node
+```
+cat <<EoF > ~/environment/redis-with-node-affinity.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-cache
+spec:
+  selector:
+    matchLabels:
+      app: store
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: store
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - store
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: redis-server
+        image: redis:3.2-alpine
+EoF
+
+```
+```
+cat <<EoF > ~/environment/web-with-node-affinity.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-server
+spec:
+  selector:
+    matchLabels:
+      app: web-store
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: web-store
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - web-store
+            topologyKey: "kubernetes.io/hostname"
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - store
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: web-app
+        image: nginx:1.12-alpine
+EoF
+  
+```
+```
+kubectl apply -f ~/environment/redis-with-node-affinity.yaml
+kubectl apply -f ~/environment/web-with-node-affinity.yaml
+# We will use --sort-by to filter by nodes name
+ kubectl get pods -o wide --sort-by='.spec.nodeName'  
+```  
+### Cleanup
+```
+kubectl delete -f ~/environment/redis-with-node-affinity.yaml
+kubectl delete -f ~/environment/web-with-node-affinity.yaml
+kubectl label nodes --all azname-
+kubectl label nodes --all disktype-
+```  
+#### Assign Pod to Node
+</details>
+  
+  	
+	
 
 <details>
   <summary>Stateful Set: EBS volume</summary>
