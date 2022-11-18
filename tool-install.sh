@@ -1,4 +1,4 @@
-```
+
 https://kubernetes.github.io/ingress-nginx/deploy/#aws
 
 k run util --image=praqma/network-multitool
@@ -45,4 +45,4 @@ sudo pip3 install ansible
 ansible --version
 
  
-```
+
