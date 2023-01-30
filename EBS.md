@@ -12,4 +12,7 @@ kubectl -n kube-system set env daemonset aws-node ENABLE_POD_ENI=true
 
 # let's way for the rolling update of the daemonset
 kubectl -n kube-system rollout status ds aws-node
+
+#  A new Custom Resource Definition (CRD) has also been added automatically at the cluster creation  
+kubectl get crd securitygrouppolicies.vpcresources.k8s.aws
 ```
