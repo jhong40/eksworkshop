@@ -6,7 +6,7 @@ aws iam attach-role-policy \
     --policy-arn arn:aws:iam::aws:policy/AmazonEKSVPCResourceController \
     --role-name ${ROLE_NAME}
 ```
-### enable the CNI plugin to manage network interfaces for pods by setting the ENABLE_POD_ENI variable to true in the aws-node DaemonSet.  
+#### enable the CNI plugin to manage network interfaces for pods by setting the ENABLE_POD_ENI variable to true in the aws-node DaemonSet.  
 ```
 kubectl -n kube-system set env daemonset aws-node ENABLE_POD_ENI=true
 
