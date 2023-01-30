@@ -16,3 +16,21 @@ kubectl -n kube-system rollout status ds aws-node
 #  A new Custom Resource Definition (CRD) has also been added automatically at the cluster creation  
 kubectl get crd securitygrouppolicies.vpcresources.k8s.aws
 ```
+```
+kubectl -n sg-per-pod get securitygrouppolicy -o yaml
+  
+apiVersion: v1
+items:
+- apiVersion: vpcresources.k8s.aws/v1beta1
+  kind: SecurityGroupPolicy
+  metadata:
+    name: allow-rds-access
+    namespace: sg-per-pod
+  spec:
+    podSelector:
+      matchLabels:
+        app: green-pod
+    securityGroups:
+      groupIds:
+      - sg-0f82fc84a86128b20
+```      
